@@ -10,10 +10,20 @@
     <!-- Bound to Skua.Core's AboutViewModel. Compiled bindings (x:DataType)
          verify MarkdownDoc exists on the real ViewModel at build time. -->
     <ScrollViewer Padding="24" HorizontalScrollBarVisibility="Disabled">
-        <SelectableTextBlock Text="{Binding MarkdownDoc}"
-                             TextWrapping="Wrap"
-                             FontFamily="{StaticResource ContentControlThemeFontFamily}"
-                             LineHeight="20" />
+        <StackPanel Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <Image Source="avares://Skua.Avalonia/Assets/SkuaIcon.png"
+                       Width="64" Height="64" VerticalAlignment="Center" />
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="VibeSkua" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="Native Linux build — Ruffle + Avalonia" FontSize="12" Opacity="0.7" />
+                </StackPanel>
+            </StackPanel>
+            <SelectableTextBlock Text="{Binding MarkdownDoc}"
+                                 TextWrapping="Wrap"
+                                 FontFamily="{StaticResource ContentControlThemeFontFamily}"
+                                 LineHeight="20" />
+        </StackPanel>
     </ScrollViewer>
 
 </UserControl>
