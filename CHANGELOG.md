@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.1
+
+Visual polish using the real Skua artwork:
+
+- The app icon now appears in the main window header and the About tab.
+- The AppImage/desktop icon is the actual Skua icon (it was a blank
+  placeholder — your taskbar/dock entry now looks right).
+- README: logo header, corrected status/links (including pointing the
+  upstream VibeSkua links at the real repo).
+
 ## v1.1.0
 
 Feature parity with Windows Skua. Everything below existed on Windows and was
