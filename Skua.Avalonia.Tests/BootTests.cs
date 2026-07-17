@@ -455,7 +455,7 @@ public class BootTests
     [AvaloniaFact]
     public void Theme_toggle_flips_the_application_variant()
     {
-        var theme = new Skua.Avalonia.Services.ThemeService();
+        var theme = new Skua.Avalonia.Services.ThemeService(new Skua.Avalonia.Services.SettingsService());
         theme.IsDarkTheme = false;
         Assert.Equal(global::Avalonia.Styling.ThemeVariant.Light, global::Avalonia.Application.Current!.RequestedThemeVariant);
         theme.IsDarkTheme = true;

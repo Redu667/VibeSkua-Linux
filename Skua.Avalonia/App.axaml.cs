@@ -188,6 +188,12 @@ public partial class App : Application
             return System.Threading.Tasks.Task.CompletedTask;
         });
 
+        Run("saved theme", () =>
+        {
+            (services.GetRequiredService<IThemeService>() as ThemeService)?.ApplySavedTheme();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
         Run("tray notifier", () =>
         {
             _trayNotifier = new TrayNotifier();

@@ -187,10 +187,14 @@ Done in the parity pass (each mirrors the WPF behavior):
   desktop notifications for script stopped/error/relogin while the window is
   hidden or minimized (WPF balloon parity).
 
-Known remaining gaps (from the full WPF-vs-Avalonia sweep; largest first):
-- **Theme/color-scheme editing** — base dark/light works; presets/custom
-  schemes are stubs (`ThemeService`), so ColorSchemeEditor/ApplicationThemes
-  panels don't apply anything.
+- **Theme editing**: named themes (`LinuxTheme` = variant + accent) save/
+  apply/remove and persist (`LinuxUserThemes`/`LinuxCurrentTheme` settings,
+  re-applied at startup); custom accent hex drives Fluent's
+  `SystemAccentColor` (+ derived shades). Fluent has one accent, so the
+  MaterialDesign primary/secondary split intentionally collapses to it.
+  Tests: `ThemeServiceTests`.
+
+Known remaining gaps (small):
 - Minor: `Console.Beep(freq,duration)` downgrades to plain beep; clipboard
   custom formats collapse to text; no single-instance guard; no periodic
   GC/priority tuning; WinForms shim means script-made WinForms UIs no-op.
