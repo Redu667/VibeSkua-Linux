@@ -19,6 +19,7 @@ public partial class App : Application
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     private static bool _servicesConfigured;
+    private static ArmyBus? _armyBus;
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -121,6 +122,17 @@ public partial class App : Application
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     services.GetRequiredService<IThemeService>().IsDarkTheme =
                         !themeName.Contains("light", StringComparison.OrdinalIgnoreCase));
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("army bus", () =>
+        {
+            // Cross-client army IPC (the Linux twin of the Windows WM
+            // broadcast): listen for army messages and route the Army* hotkey
+            // broadcasts through the socket bus. Held for the process lifetime.
+            _armyBus = new ArmyBus();
+            _armyBus.MessageReceived += ArmyMessageHandler.Handle;
+            Skua.Core.AppStartup.HotKeys.ArmyBroadcaster = _armyBus.Broadcast;
             return System.Threading.Tasks.Task.CompletedTask;
         });
 

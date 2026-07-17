@@ -336,13 +336,20 @@ public class HotKeys
         options.LagKiller = !options.LagKiller;
     }
 
+    /// <summary>
+    /// Off-Windows replacement for the WM broadcast below: the platform host
+    /// (Skua.Avalonia's Unix-domain-socket ArmyBus) plugs in a delegate that
+    /// delivers the same (msg, wParam, lParam) triple to every client process.
+    /// </summary>
+    public static Action<uint, int, int>? ArmyBroadcaster { get; set; }
+
     private static void BroadcastArmyMessage(uint msg, int wParam, int lParam)
     {
-        // The WM-broadcast army bus is Windows-only. On Linux the local part of
-        // each Army* action (its own option toggle) still runs; a cross-client
-        // bus over Unix domain sockets is tracked as follow-up parity work.
         if (!OperatingSystem.IsWindows())
+        {
+            ArmyBroadcaster?.Invoke(msg, wParam, lParam);
             return;
+        }
 
         var skuaProcesses = System.Diagnostics.Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName);
         var pids = skuaProcesses.Select(p => p.Id).ToHashSet();
