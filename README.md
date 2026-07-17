@@ -1,4 +1,8 @@
-# VibeSkua Linux
+<p align="center">
+  <img src="Assets/SkuaIcon.png" width="128" alt="VibeSkua icon" />
+</p>
+
+<h1 align="center">VibeSkua Linux</h1>
 
 > **Note:** This project is **Vibe Coded** — built through AI-assisted development and pure momentum.
 
@@ -18,17 +22,17 @@ The engine, scripts, and behavior are unchanged — this is the same bot, hosted
 | Layer | What | Status |
 | :--- | :--- | :--- |
 | **1. Core engine** (~40k LOC) | `Skua.Core`, `.Interfaces`, `.Models`, `.Utils`, `.Generators` | ✅ Builds native `net10.0` on Linux, 0 errors. All 89 ViewModels + the full `IScriptInterface` bot graph resolve and run. |
-| **2. UI** (~9.5k LOC) | `Skua.WPF` → `Skua.Avalonia` | ✅ Whole UI ported — 61 views (main bot app, all dialogs, and the Skua.Manager multi-account launcher), 16 headless tests. |
+| **2. UI** (~9.5k LOC) | `Skua.WPF` → `Skua.Avalonia` | ✅ Whole UI ported — 65+ views (main bot app, all dialogs, pop-out panels, and the Skua.Manager multi-account launcher), 35 headless tests. |
 | **3. Flash runtime** | Flash ActiveX → embedded `ruffle_core` | ✅ Real `ruffle_core` embedded in `libskua_flash.so`; ExternalInterface round-trips both directions against a real AVM2 SWF (verified in CI). |
 | **Packaging** | Velopack AppImage | ✅ `vpk`-built `.AppImage`, self-contained (no .NET install needed). |
 
-The one remaining runtime step is loading the **live** AQW game SWF from `game.aq.com` and injecting `skua.swf` into its ApplicationDomain — the code path is in place and rides on the proven ExternalInterface plumbing; it just needs a live game session to exercise. See [`LINUX.md`](LINUX.md) for the full engineering status.
+**The port works end to end**, verified on real hardware: the game renders, login works, and real CoreBots scripts compile, run, and drive the character in live AQW. Hotkeys, army control across clients, pop-out panels, tray notifications, plugins, auto-updates, and theme editing all work — see the [changelog](CHANGELOG.md) and [`LINUX.md`](LINUX.md) for the full engineering status.
 
 ---
 
 ## Install / Run (AppImage)
 
-Download the latest `VibeSkuaLinux.AppImage` from [Releases](https://github.com/Durstronaut/Linux-SKUA/releases), then:
+Download the latest `VibeSkuaLinux.AppImage` from [Releases](https://github.com/Redu667/VibeSkua-Linux/releases), then:
 
 ```bash
 chmod +x VibeSkuaLinux.AppImage
