@@ -17,7 +17,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Button Content="{Binding}" MinWidth="70" />
+                    <Button Content="{Binding}" MinWidth="70" Click="Button_Click" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

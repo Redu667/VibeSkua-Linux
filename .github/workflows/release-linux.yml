@@ -50,6 +50,21 @@ jobs:
       - name: Build AppImage
         run: ./packaging/build-appimage.sh "${{ steps.ver.outputs.version }}"
 
+      - name: Prepare release notes
+        id: notes
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          awk -v ver="v$VERSION" '
+            $0 == "## " ver { found = 1; next }
+            /^## / && found { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "No '## v$VERSION' section found in CHANGELOG.md" >&2
+            exit 1
+          fi
+          echo "path=release-notes.md" >> "$GITHUB_OUTPUT"
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
@@ -68,15 +83,6 @@ jobs:
             packaging/Releases/*.nupkg
             packaging/Releases/RELEASES-linux
             packaging/Releases/releases.linux.json
-          body: |
-            Native-Linux build of VibeSkua — Avalonia UI + embedded ruffle_core.
-
-            **Run:**
-            ```bash
-            chmod +x VibeSkuaLinux.AppImage
-            ./VibeSkuaLinux.AppImage
-            ```
-            Self-contained (bundles the .NET runtime + `libskua_flash.so` with
-            Ruffle embedded). No .NET or Flash install required.
+          body_path: ${{ steps.notes.outputs.path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

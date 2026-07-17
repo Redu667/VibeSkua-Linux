@@ -14,9 +14,9 @@ Windows/WPF build is unchanged and lives alongside this work.
 | **3b. C# Flash backend** | `RuffleFlashUtil : IFlashUtil`, P/Invokes the bridge | ✅ **done, round-trips end to end** (`Skua.Flash.Linux`) |
 | **Script engine** | Roslyn/Westwind compiler | ✅ **compiles + runs scripts on Linux** |
 | **Full engine graph** | entire `IScriptInterface` bot (~40 services) | ✅ **resolves + runs on Linux** via real `Skua.Core.AppStartup` DI |
-| **3b. Ruffle runtime** | embed `ruffle_core`, real `ExternalInterfaceProvider` | ✅ **built & round-tripping against real `ruffle_core`** — `src/ruffle_runtime.rs` embeds a `ruffle_core::Player` (on a dedicated thread, behind a command channel, since `Player` is `!Send`) and `tests/ruffle_roundtrip.rs` drives a real AVM2 SWF end-to-end: **host→AS3** `call_internal_interface` round-trips a value, **AS3→host** `ExternalInterface.call` reaches our provider. `cargo build --release --features ruffle` → 13 MB `libskua_flash.so` with ruffle_core embedded. Only loading the **remote** AQW game SWF + same-domain `skua.swf` injection is unproven (game.aq.com egress-blocked here). |
-| **2. UI** (~9.5k LOC XAML) | `Skua.WPF` → new `Skua.Avalonia` | ✅ **whole UI ported (61 views), app runs & hosts the full engine** — Avalonia app + DI + ViewLocator + navigable shell, **all 11 Linux platform services**, the complete main-app ViewModel graph, **all 6 dialogs**, and the **Skua.Manager multi-account launcher** (accounts/groups, script/client updaters, options) — all wired via `Skua.Core.AppStartup` + `RuffleFlashUtil`. 16 headless tests, 0 failures. Only live game rendering waits on linking real Ruffle. |
-| **Packaging** | Velopack AppImage + bundled Ruffle nightly | ⬜ **not started** |
+| **3b. Ruffle runtime** | embed `ruffle_core`, real `ExternalInterfaceProvider` | ✅ **built & round-tripping against real `ruffle_core`** — `src/ruffle_runtime.rs` embeds a `ruffle_core::Player` (on a dedicated thread, behind a command channel, since `Player` is `!Send`) and `tests/ruffle_roundtrip.rs` drives a real AVM2 SWF end-to-end: **host→AS3** `call_internal_interface` round-trips a value, **AS3→host** `ExternalInterface.call` reaches our provider. `cargo build --release --features ruffle` → 13 MB `libskua_flash.so` with ruffle_core embedded. **Live-verified on real hardware (v0.1.28):** the game renders, login works, and a real bot script drives the character. |
+| **2. UI** (~9.5k LOC XAML) | `Skua.WPF` → new `Skua.Avalonia` | ✅ **whole UI ported (61 views), app runs & hosts the full engine** — Avalonia app + DI + ViewLocator + navigable shell, **all 11 Linux platform services**, the complete main-app ViewModel graph, **all 6 dialogs** (modal, hosted in `HostDialogWindow`), and the **Skua.Manager multi-account launcher** (accounts/groups, script/client updaters, options) — all wired via `Skua.Core.AppStartup` + `RuffleFlashUtil`. Headless test suite, 0 failures. |
+| **Packaging** | Velopack AppImage + embedded Ruffle | ✅ **done** — `packaging/build-appimage.sh` (Velopack `vpk`, self-contained publish, real-ruffle `.so` by default), published by `.github/workflows/release-linux.yml` with notes from `CHANGELOG.md` |
 
 ### What works today, verified on Linux
 
@@ -102,28 +102,17 @@ changes were needed in `Skua.Core` for Layer 1.
 - `Skua.Flash.Linux/` — the C# `IFlashUtil` backend + P/Invoke bindings.
 - `Skua.App.Console/` — headless host / smoke test.
 
-## Roadmap
+## Roadmap (feature parity / polish — the port itself works end to end)
 
-1. **Compile `RuffleRuntime` (`native/skua-flash-bridge/src/ruffle_runtime.rs`).**
-   The runtime is written behind the bridge's `FlashRuntime` trait and the
-   `ruffle` cargo feature, but `ruffle_core` is a git-only dependency
-   (`github.com/ruffle-rs/ruffle`, not on crates.io) so it is excluded from the
-   default build. In an environment where github is reachable: pin a *current*
-   nightly, wire the deps (`Cargo.toml` has the block), and reconcile the
-   `// RUFFLE API:` sites. Gotchas (serve `Loader3.swf` over **https**; inject
-   `skua.swf` into the same `ApplicationDomain`) are in
-   `native/skua-flash-bridge/README.md`. Definition of done: `world.strMapName`
-   round-trips from the *real* game instead of the mock.
-2. **Port the remaining Avalonia views.** The app, DI, theming, `ViewLocator`,
-   and the first view (`AboutView`) are done and verified by headless tests; all
-   89 ViewModels already live in `Skua.Core` on `CommunityToolkit.Mvvm`, so what
-   remains is a mechanical rewrite of the ~85 other XAML views over them. Replace
-   `NHotkey.Wpf` with SharpHook/X11 grabs and the `WM_COPYDATA` hotkey forwarding
-   with a `NamedPipeServerStream` (Unix domain socket) behind an
-   `IHotkeyForwarder`.
-3. **Packaging.** Velopack already supports Linux AppImage; bundle a current
-   Ruffle nightly (Apache-2.0/MIT — legal to redistribute). Never bundle
-   `libpepflashplayer.so` (proprietary).
+Done: modal owner-centered dialogs; army multi-client (`--client` window per
+account) with render-pause on unfocus; per-account auto-login +
+`--run-script`; background render-pause / status-throttle perf work.
+
+Remaining: Avalonia view/panel polish, driven by concrete user-reported rough
+edges (don't speculatively rewrite working views).
+
+Never bundle `libpepflashplayer.so` (proprietary); Ruffle is Apache-2.0/MIT and
+ships embedded.
 
 ## Avalonia UI (Layer 2) — complete
 
@@ -132,8 +121,8 @@ the six dialogs, and the Skua.Manager multi-account launcher, all driven by the
 portable `Skua.Core` ViewModels through a convention `ViewLocator` (with a flat
 fallback for VMs in sub-namespaces like `.Manager`). The app boots on Linux,
 hosts the full `IScriptInterface` engine graph via `Skua.Core.AppStartup` DI,
-and every panel's ViewModel resolves against that graph. **16 headless tests
-(Avalonia.Headless.XUnit) pass with 0 failures.**
+and every panel's ViewModel resolves against that graph. **The headless test
+suite (Avalonia.Headless.XUnit) passes with 0 failures.**
 
 **Main app** — navigable shell + panels: stats, current/to-pickup drops, boosts,
 console, auto, jump, registered quests, fast travel (+ editor), loadouts, script
@@ -177,49 +166,44 @@ So **"Launch Skua"** (or starting an account) pops out a new game window; do it 
 times for an N-account army. Per-account auto-login into the game itself lands
 with `skua.swf` injection (the forwarded credentials args are already plumbed).
 
-### Bot *control* — WORKS (same-domain `skua.swf` injection)
+### Bot *control* — WORKS (root-movie boot, the Windows way)
 
-The game **renders**, the ExternalInterface bridge **round-trips both ways**
-(host→AS3 `Call`, AS3→host `FlashCall`; `tests/ruffle_roundtrip.rs`), **and the
-bot can drive it**: `skua.swf` loads into the game's `ApplicationDomain`, its
-document-class constructor runs, and it registers the `ExternalInterface`
-callbacks (`getGameObject`, `callGameFunction`, `sendPacket`, …) that reach into
-`world` via `getDefinition`.
+**Live-verified end to end (v0.1.28, real hardware):** the game renders, login
+works, a real bot script (CoreBots + includes) compiles, starts, and drives the
+character in live AQW.
 
-**How.** The published `ruffle_core` exposes no host-callable "load a secondary
-SWF into the running domain" method, and the AVM2 loader types it needs
-(`LoaderInfoObject`, `LoaderDisplay`, `Avm2Domain`, …) live in private modules —
-so we add exactly one method, `pub Player::inject_swf_same_domain`, via
-`native/ruffle-skua-inject.patch` (96 lines, one function). It builds a
-`flash.display.Loader`, attaches it (invisibly) to the stage so the loaded movie
-ticks, and calls `LoadManager::load_movie_into_clip_bytes` into a child of the
-game's root-movie domain. `native/prepare-ruffle-fork.sh` clones ruffle at the
-pinned rev, applies the patch, and appends the `[patch]` block to the bridge's
-`Cargo.toml` (not committed — it would break the offline build). The csproj and
-CI run it automatically before the `ruffle`/`ruffle-render` cargo build.
+**Architecture (corrected from the earlier injection approach).** Injection —
+loading `skua.swf` *beside* an already-running game — registers the
+`ExternalInterface` callbacks but leaves `Main.instance.game` null: `skua.swf`
+is *designed to load the game itself* (`loadClient` → gameversion API →
+`Loader.load` → `this.game = loader.content`), and every API call resolves
+through that `game` reference (a tester confirmed the symptom: scripts "ran"
+but did nothing). So, exactly like the Windows client, the Linux client boots
+**`skua.swf` as the ROOT movie from local bytes**
+(`RenderHost::create_from_bytes`, nominal origin
+`https://game.aq.com/game/skua.swf` — https matters for
+`SharedObject.getLocal(secure)`), and `RuffleFlashUtil.BindRenderer` performs
+the Windows startup handshake: poll `isTrue` until skua.swf's callbacks
+register, then call `loadClient` exactly once. `skua.swf` is resolved via
+`AppContext.BaseDirectory` (not the CWD — an AppImage's CWD is wherever the
+user launched from). Verified by
+`tests/ruffle_render.rs::host_boots_root_movie_from_bytes_and_answers_the_bot`.
 
-**Verified end to end, no live game** — `tests/ruffle_inject.rs`: a probe SWF
-whose document class (`extends MovieClip`) fires `ExternalInterface.call("foo")`
-from its constructor is injected into a running player; after injection the call
-reaches the host handler, proving the injected SWF's code executes inside the
-game's domain and the bot bridge is live. (The injected document class must
-extend `Sprite`/`MovieClip` — as real skua.swf does — or ruffle's root-link check
-rejects it; a class extending `Object` was the red herring behind a long
-debugging detour.)
-
-Still remote-only: fetching AQW's live `Loader3.swf` over https needs game.aq.com
-egress. Feeding real credentials from `--client --account` into the injected
-skua.swf for per-account auto-login is the remaining glue on top of this.
+The `inject_swf_same_domain` fork patch (`native/ruffle-skua-inject.patch`,
+applied by `native/prepare-ruffle-fork.sh`) remains — tests use it — but it is
+no longer the bot path.
 
 **Services (11):** `ProcessService`, `ClipboardService`, `DispatcherService`,
 `SettingsService`, `DialogService`, `SoundService`, `WindowService`,
 `FileDialogService`, `ScreenshotService`, `ThemeService`, `HotKeyService`.
 
-Remaining UI work is polish, not porting: the panels render live game data once
-real Ruffle is linked (against the mock runtime they render defaults), and
-`IDialogService.ShowDialog` still returns synchronously while Avalonia dialogs
-are async — the dialog *views* exist; wiring modal results back to the sync
-`Skua.Core` callers needs a nested-loop dialog host (a design task, not XAML).
+Dialogs are fully modal: typed dialogs (`ShowDialog<TViewModel>`) are hosted in
+`HostDialogWindow` (the Linux twin of WPF's `HostDialog` — ViewModel in, the
+ViewLocator supplies the view, buttons close the host with a result), shown
+modally over the client window. The synchronous `Skua.Core` contract is kept by
+pumping a nested dispatcher frame until the user answers, so callers get the
+real `bool?` back. Message boxes work the same way. Covered by headless tests
+(`DialogHostTests`).
 
 ## CI
 

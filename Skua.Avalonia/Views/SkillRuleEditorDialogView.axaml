@@ -7,6 +7,13 @@
              x:Class="Skua.Avalonia.Views.SkillRuleEditorDialogView"
              x:DataType="vm:SkillRuleEditorDialogViewModel">
 
-    <ContentControl Content="{Binding UseRules}" Margin="8" />
+    <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="Save" MinWidth="70" IsDefault="True" Click="BtnSave_Click" />
+            <Button Content="Cancel" MinWidth="70" IsCancel="True" Click="BtnCancel_Click" />
+        </StackPanel>
+        <ContentControl Content="{Binding UseRules}" />
+    </DockPanel>
 
 </UserControl>
