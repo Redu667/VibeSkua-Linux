@@ -139,12 +139,20 @@ Hard-won lessons already fixed — do NOT regress these (each has a test):
 
 ## NEXT: tweak & fix (feature parity / polish)
 
-- MessageBox/dialog windows spawn as scattered top-level windows — make them
-  modal children of the client window (real Skua parity).
-- Army at scale: multiple `--client` windows, render-pause on unfocus, manager UX.
-- Auto-login / account manager flow end-to-end.
-- Performance tuning (tick rate, capture cadence, lag options in scripts).
-- Remaining Avalonia views/panels polish (Layer 2 grind).
+- ~~MessageBox/dialog windows modal~~ ✅ DONE: typed dialogs
+  (`ShowDialog<TViewModel>`) now live in `HostDialogWindow` (Linux twin of
+  WPF's `HostDialog`: VM in, ViewLocator supplies the view, buttons close with
+  a result), shown modally over the client window; message boxes already were.
+  All 7 dialog views' buttons are wired (`HostDialogWindow.CloseWithResult`).
+  Sync `Skua.Core` callers get real `bool?` results via the nested dispatcher
+  frame. Tests: `Skua.Avalonia.Tests/DialogHostTests.cs`.
+- ~~Army at scale~~ ✅ DONE: `--client` window per account, render-pause on
+  unfocus (`GameView` pauses rendering — not the bot — while backgrounded).
+- ~~Auto-login / account manager flow~~ ✅ DONE: `ClientStartup` wires
+  `-u/-p/-s` + `--run-script` into the running client.
+- ~~Performance~~ ✅ DONE: background render-pause + status throttle.
+- Remaining Avalonia views/panels polish (Layer 2 grind) — wait for the user to
+  name concrete rough edges; don't speculatively rewrite working views.
 
 ---
 

@@ -3,13 +3,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
-             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="140"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
              x:Class="Skua.Avalonia.Views.InputDialogView"
              x:DataType="vm:InputDialogViewModel">
 
     <StackPanel Margin="20" Spacing="10" MinWidth="280">
-        <TextBlock Text="{Binding DialogHint}" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding DialogHint}" TextWrapping="Wrap"
+                   IsVisible="{Binding DialogHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         <TextBox Watermark="{Binding TextBoxHint}" Text="{Binding DialogTextInput, Mode=TwoWay}" />
+        <TextBox Watermark="{Binding SecondTextBoxHint}" Text="{Binding SecondTextInput, Mode=TwoWay}"
+                 IsVisible="{Binding ShowSecondInput}" />
+        <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
+            <Button Grid.Column="0" Content="Confirm" IsDefault="True" Click="BtnConfirm_Click"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,4,0" />
+            <Button Grid.Column="1" Content="Cancel" IsCancel="True" Click="BtnCancel_Click"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4,0,0,0" />
+        </Grid>
     </StackPanel>
 
 </UserControl>

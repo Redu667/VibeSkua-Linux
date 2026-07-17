@@ -6,15 +6,19 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
 using Avalonia.Threading;
+using Skua.Avalonia.Views;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
+using Skua.Core.ViewModels;
 
 namespace Skua.Avalonia.Services;
 
 /// <summary>
-/// Linux <see cref="IDialogService"/>. Message boxes are real MODAL dialogs
-/// owned by (and centered on) the client window, so they no longer scatter as
-/// free-floating top-level windows the way <c>Window.Show</c> produced. The
+/// Linux <see cref="IDialogService"/>. Message boxes AND typed dialogs
+/// (<c>ShowDialog&lt;TViewModel&gt;</c> hosted in <see cref="HostDialogWindow"/>)
+/// are real MODAL dialogs owned by (and centered on) the client window, so they
+/// no longer scatter as free-floating top-level windows the way <c>Window.Show</c>
+/// produced. The
 /// Skua.Core contract is synchronous and scripts call it from the script thread,
 /// so each call marshals to the UI thread, shows the dialog modally, and blocks
 /// the caller until a button is clicked — returning the actual choice (the
@@ -23,10 +27,62 @@ namespace Skua.Avalonia.Services;
 /// </summary>
 public sealed class DialogService : IDialogService
 {
-    // Typed dialogs are not ported yet; returning null means "cancelled/none".
-    public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : class => null;
-    public bool? ShowDialog<TViewModel>(TViewModel viewModel, string title) where TViewModel : class => null;
-    public bool? ShowDialog<TViewModel>(TViewModel viewModel, Action<TViewModel> callback) where TViewModel : class => null;
+    public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
+        => ShowHostDialog(viewModel, null, null);
+
+    public bool? ShowDialog<TViewModel>(TViewModel viewModel, string title) where TViewModel : class
+        => ShowHostDialog(viewModel, title, null);
+
+    public bool? ShowDialog<TViewModel>(TViewModel viewModel, Action<TViewModel> callback) where TViewModel : class
+        => ShowHostDialog(viewModel, null, callback);
+
+    /// <summary>
+    /// Typed dialogs: the ViewModel goes into a <see cref="HostDialogWindow"/>
+    /// (the ViewLocator supplies its view) shown modally over the client
+    /// window, exactly like WPF's <c>HostDialog.ShowDialog()</c>. The dialog
+    /// view closes the host via <see cref="HostDialogWindow.CloseWithResult"/>.
+    /// </summary>
+    private static bool? ShowHostDialog<TViewModel>(TViewModel viewModel, string? title, Action<TViewModel>? callback)
+        where TViewModel : class
+        => RunSync<bool?>(async () =>
+        {
+            Window? owner = ActiveWindow();
+
+            HostDialogWindow dialog = new()
+            {
+                DataContext = viewModel,
+                Title = title ?? (viewModel as DialogViewModelBase)?.Title ?? "Skua",
+                WindowStartupLocation = owner is null
+                    ? WindowStartupLocation.CenterScreen
+                    : WindowStartupLocation.CenterOwner,
+            };
+
+            try
+            {
+                if (owner is not null)
+                {
+                    await dialog.ShowDialog(owner);
+                }
+                else
+                {
+                    // No owner (very early startup) — show non-modally and
+                    // wait for the close, so the caller still gets a result.
+                    TaskCompletionSource closed = new();
+                    dialog.Closed += (_, _) => closed.TrySetResult();
+                    dialog.Show();
+                    await closed.Task;
+                }
+            }
+            finally
+            {
+                // WPF parity: the callback overload runs its callback when the
+                // dialog closes, before ShowDialog returns to the caller.
+                try { callback?.Invoke(viewModel); }
+                catch (Exception ex) { Console.Error.WriteLine($"dialog callback failed: {ex}"); }
+            }
+
+            return dialog.Result;
+        }, null);
 
     public void ShowMessageBox(string message, string caption)
         => ShowModal(message, caption, new[] { "OK" });
@@ -47,7 +103,7 @@ public sealed class DialogService : IDialogService
         => ShowModal(message, caption, buttons.Length > 0 ? buttons : new[] { "OK" });
 
     private static DialogResult ShowModal(string message, string caption, string[] buttons)
-        => RunSync(() => ShowModalAsync(message, caption, buttons));
+        => RunSync(() => ShowModalAsync(message, caption, buttons), DialogResult.Cancelled);
 
     private static async Task<DialogResult> ShowModalAsync(string message, string caption, string[] buttons)
     {
@@ -130,11 +186,11 @@ public sealed class DialogService : IDialogService
     /// pumps a nested dispatcher frame (so the modal stays responsive without
     /// deadlocking); off it, it marshals onto the UI thread and waits.
     /// </summary>
-    private static DialogResult RunSync(Func<Task<DialogResult>> func)
+    private static T RunSync<T>(Func<Task<T>> func, T fallback)
     {
         if (Dispatcher.UIThread.CheckAccess())
         {
-            DialogResult result = DialogResult.Cancelled;
+            T result = fallback;
             var frame = new DispatcherFrame();
             _ = Dispatcher.UIThread.InvokeAsync(async () =>
             {
@@ -153,7 +209,7 @@ public sealed class DialogService : IDialogService
         catch (Exception ex)
         {
             Console.Error.WriteLine($"dialog failed: {ex}");
-            return DialogResult.Cancelled;
+            return fallback;
         }
     }
 }

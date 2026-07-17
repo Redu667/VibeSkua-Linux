@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="240"
+        x:Class="Skua.Avalonia.Views.HostDialogWindow"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <!-- The Linux twin of Skua.WPF's HostDialog: the dialog ViewModel is the
+         DataContext and the ViewLocator turns it into its dialog view. -->
+    <ContentControl Content="{ReflectionBinding}" />
+
+</Window>
