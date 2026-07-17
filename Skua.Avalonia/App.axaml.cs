@@ -19,6 +19,7 @@ public partial class App : Application
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     private static bool _servicesConfigured;
+    private static ArmyBus? _armyBus;
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -86,10 +87,149 @@ public partial class App : Application
                         ClientStartup.FromArgs(args)?.Attach();
                     }
                     global::Avalonia.Threading.Dispatcher.UIThread.Post(() => window.DataContext = shell);
+                    RunStartupTasks(clientMode, args);
                 });
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// The startup side-work the Windows apps do once their window is up
+    /// (Skua.App.WPF App.OnStartup + Skua.Manager App startup): load plugins,
+    /// register hotkeys, preload the server list, check for app updates, and
+    /// run the content-update flows (bot scripts, advanced skill sets, quest
+    /// data, junk items). Content/app updates run only in the manager window —
+    /// army clients share the same files on Linux, so N clients re-downloading
+    /// them would race; clients still get plugins, hotkeys, and servers.
+    /// Everything is fire-and-forget and individually guarded: a failed update
+    /// check must never take the app down.
+    /// </summary>
+    private static void RunStartupTasks(bool clientMode, string[] args)
+    {
+        var services = Ioc.Default;
+
+        // CLI parity with WPF's SkuaStartupHandler: --gh-token seeds the GitHub
+        // auth token, --use-theme picks the base theme by name.
+        Run("cli args", () =>
+        {
+            string? ghToken = GetOption(args, "--gh-token");
+            if (!string.IsNullOrEmpty(ghToken))
+                services.GetRequiredService<ISettingsService>().Set("UserGitHubToken", ghToken);
+
+            string? themeName = GetOption(args, "--use-theme");
+            if (!string.IsNullOrEmpty(themeName))
+                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    services.GetRequiredService<IThemeService>().IsDarkTheme =
+                        !themeName.Contains("light", StringComparison.OrdinalIgnoreCase));
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("army bus", () =>
+        {
+            // Cross-client army IPC (the Linux twin of the Windows WM
+            // broadcast): listen for army messages and route the Army* hotkey
+            // broadcasts through the socket bus. Held for the process lifetime.
+            _armyBus = new ArmyBus();
+            _armyBus.MessageReceived += ArmyMessageHandler.Handle;
+            Skua.Core.AppStartup.HotKeys.ArmyBroadcaster = _armyBus.Broadcast;
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("plugins", () =>
+        {
+            services.GetRequiredService<IPluginManager>().Initialize();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("hotkeys", () =>
+        {
+            services.GetRequiredService<IHotKeyService>().Reload();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("servers", async () =>
+        {
+            await System.Threading.Tasks.Task.Delay(1000);
+            await services.GetRequiredService<IScriptServers>().GetServers();
+        });
+
+        if (clientMode)
+            return;
+
+        ISettingsService settings = services.GetRequiredService<ISettingsService>();
+        IGetScriptsService getScripts = services.GetRequiredService<IGetScriptsService>();
+
+        if (settings.Get<bool>("CheckClientUpdates"))
+        {
+            Run("app update check", async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(1500);
+                await services.GetRequiredService<Skua.Core.ViewModels.Manager.AppUpdaterViewModel>().CheckForUpdateAsync();
+            });
+        }
+
+        if (settings.Get<bool>("CheckBotScriptsUpdates"))
+        {
+            Run("bot scripts update", async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(2000);
+                await getScripts.GetScriptsAsync(null, default);
+                if ((getScripts.Missing > 0 || getScripts.Outdated > 0) && settings.Get<bool>("AutoUpdateBotScripts"))
+                    await getScripts.DownloadAllWhereAsync(s => !s.Downloaded || s.Outdated);
+            });
+        }
+
+        if (settings.Get<bool>("CheckAdvanceSkillSetsUpdates"))
+        {
+            Run("skill sets update", async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(2000);
+                long remoteSize = await getScripts.CheckAdvanceSkillSetsUpdates();
+                if (remoteSize > 0 && settings.Get<bool>("AutoUpdateAdvanceSkillSetsUpdates") && await getScripts.UpdateSkillSetsFile())
+                    services.GetRequiredService<IAdvancedSkillContainer>().SyncSkills();
+            });
+        }
+
+        Run("quest data update", async () =>
+        {
+            await System.Threading.Tasks.Task.Delay(3000);
+            await getScripts.UpdateQuestDataFile();
+        });
+
+        if (settings.Get<bool>("CheckJunkItemsUpdates"))
+        {
+            Run("junk items update", async () =>
+            {
+                long remoteSize = await getScripts.CheckJunkItemsUpdates();
+                if (remoteSize <= 0)
+                    return;
+                bool auto = settings.Get<bool>("AutoUpdateJunkItems");
+                IDialogService dialogs = services.GetRequiredService<IDialogService>();
+                if (!auto && dialogs.ShowMessageBox("Would you like to update your Junk Items list?", "Junk Items Update", true) != true)
+                    return;
+                if (await getScripts.UpdateJunkItemsFile())
+                {
+                    services.GetRequiredService<IJunkService>().Load();
+                    dialogs.ShowMessageBox(
+                        auto
+                            ? "Junk Items list has been updated.\r\nYou can disable auto Junk Items updates in Options > Application."
+                            : "Junk Items list has been updated.\r\nYou can enable auto Junk Items updates in Options > Application.",
+                        "Junk Items Update");
+                }
+                else
+                {
+                    dialogs.ShowMessageBox("Junk Items update error.\r\nYou can disable auto Junk Items updates in Options > Application.", "Junk Items Update");
+                }
+            });
+        }
+
+        static void Run(string name, Func<System.Threading.Tasks.Task> work)
+            => _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                try { await work(); }
+                catch (Exception ex) { System.Console.Error.WriteLine($"startup task '{name}' failed: {ex.Message}"); }
+            });
     }
 
     /// <summary>

@@ -268,6 +268,11 @@ public class HotKeys
 
     private static bool CanExecuteHotKey()
     {
+        // On non-Windows there is no user32; hotkeys are window-scoped input
+        // bindings there, so having focus is already implied when they fire.
+        if (!OperatingSystem.IsWindows())
+            return true;
+
         try
         {
             IntPtr foregroundWindow = GetForegroundWindow();
@@ -331,8 +336,21 @@ public class HotKeys
         options.LagKiller = !options.LagKiller;
     }
 
+    /// <summary>
+    /// Off-Windows replacement for the WM broadcast below: the platform host
+    /// (Skua.Avalonia's Unix-domain-socket ArmyBus) plugs in a delegate that
+    /// delivers the same (msg, wParam, lParam) triple to every client process.
+    /// </summary>
+    public static Action<uint, int, int>? ArmyBroadcaster { get; set; }
+
     private static void BroadcastArmyMessage(uint msg, int wParam, int lParam)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            ArmyBroadcaster?.Invoke(msg, wParam, lParam);
+            return;
+        }
+
         var skuaProcesses = System.Diagnostics.Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName);
         var pids = skuaProcesses.Select(p => p.Id).ToHashSet();
         
