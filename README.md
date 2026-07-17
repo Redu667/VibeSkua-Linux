@@ -6,7 +6,7 @@
 
 > **Note:** This project is **Vibe Coded** — built through AI-assisted development and pure momentum.
 
-**VibeSkua Linux** is a **native Linux port** of [VibeSkua](https://github.com/Durstronaut/Linux-SKUA) (itself a feature-rich fork of [auqw/skua](https://github.com/auqw/skua)) — the same advanced AQW automation, army control, and scripting, running **natively on Linux with no Wine and no VM**.
+**VibeSkua Linux** is a **native Linux port** of [VibeSkua](https://github.com/NinjaXz/VibeSkua) (itself a feature-rich fork of [auqw/skua](https://github.com/auqw/skua)) — the same advanced AQW automation, army control, and scripting, running **natively on Linux with no Wine and no VM**.
 
 It swaps the two Windows-only pieces of Skua for native equivalents:
 
@@ -83,7 +83,7 @@ dotnet tool install -g vpk
 
 ## What carries over from VibeSkua
 
-All of VibeSkua's features are engine/ViewModel-level and therefore portable as-is — Discord integration, headless mode, script scheduling with silent/unattended profiles, the multi-account army control + grid view, function-based skills, loadouts manager, smart quest sync, custom script loading, hotkeys, and the performance/stability work. The Linux port hosts the identical engine; only the rendering (Ruffle) and windowing (Avalonia) layers are new. See the [VibeSkua feature list](https://github.com/Durstronaut/Linux-SKUA) for the full breakdown.
+All of VibeSkua's features are engine/ViewModel-level and therefore portable as-is — Discord integration, headless mode, script scheduling with silent/unattended profiles, the multi-account army control + grid view, function-based skills, loadouts manager, smart quest sync, custom script loading, hotkeys, and the performance/stability work. The Linux port hosts the identical engine; only the rendering (Ruffle) and windowing (Avalonia) layers are new. See the [VibeSkua feature list](https://github.com/NinjaXz/VibeSkua) for the full breakdown.
 
 ---
 
