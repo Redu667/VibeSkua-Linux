@@ -20,6 +20,56 @@ public partial class App : Application
 
     private static bool _servicesConfigured;
     private static ArmyBus? _armyBus;
+    private static TrayNotifier? _trayNotifier;
+
+    /// <summary>
+    /// Tray icon with Show/Hide + Exit (the WPF app's TaskbarIcon equivalent).
+    /// Clicking toggles the window, so bots can run "minimized to tray";
+    /// TrayNotifier surfaces script/relogin events while hidden. Best-effort —
+    /// some desktop environments have no tray, and the app works without one.
+    /// </summary>
+    private static void TrySetupTray(IClassicDesktopStyleApplicationLifetime desktop, MainWindow window)
+    {
+        try
+        {
+            var iconUri = new Uri("avares://Skua.Avalonia/Assets/SkuaIcon.ico");
+            using (var iconStream = global::Avalonia.Platform.AssetLoader.Open(iconUri))
+                window.Icon = new global::Avalonia.Controls.WindowIcon(iconStream);
+
+            void ToggleWindow()
+            {
+                if (window.IsVisible)
+                {
+                    window.Hide();
+                }
+                else
+                {
+                    window.Show();
+                    window.Activate();
+                }
+            }
+
+            var showHide = new global::Avalonia.Controls.NativeMenuItem("Show / Hide");
+            showHide.Click += (_, _) => ToggleWindow();
+            var exit = new global::Avalonia.Controls.NativeMenuItem("Exit");
+            exit.Click += (_, _) => desktop.Shutdown();
+
+            using var trayIconStream = global::Avalonia.Platform.AssetLoader.Open(iconUri);
+            var tray = new global::Avalonia.Controls.TrayIcon
+            {
+                Icon = new global::Avalonia.Controls.WindowIcon(trayIconStream),
+                ToolTipText = window.Title ?? "VibeSkua",
+                Menu = new global::Avalonia.Controls.NativeMenu { Items = { showHide, exit } },
+            };
+            tray.Clicked += (_, _) => ToggleWindow();
+
+            global::Avalonia.Controls.TrayIcon.SetIcons(Current!, new global::Avalonia.Controls.TrayIcons { tray });
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"tray icon unavailable: {ex.Message}");
+        }
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -62,6 +112,7 @@ public partial class App : Application
             if (clientMode && !string.IsNullOrEmpty(label))
                 window.Title = $"VibeSkua — {label}";
             desktop.MainWindow = window;
+            TrySetupTray(desktop, window);
 
             System.Threading.Tasks.Task
                 .Run(() => Ioc.Default.GetRequiredService<MainWindowViewModel>())
@@ -122,6 +173,24 @@ public partial class App : Application
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     services.GetRequiredService<IThemeService>().IsDarkTheme =
                         !themeName.Contains("light", StringComparison.OrdinalIgnoreCase));
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("managed windows", () =>
+        {
+            // Same pop-out registry the Windows apps fill: bot panels in
+            // clients, the manager subset otherwise. ShowManagedWindow (used
+            // by hotkeys and several ViewModels) opens these as HostWindows.
+            if (clientMode)
+                Skua.Core.AppStartup.ManagedWindows.Register(Ioc.Default);
+            else
+                Skua.Core.AppStartup.ManagedWindows.RegisterForManager(Ioc.Default);
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        Run("tray notifier", () =>
+        {
+            _trayNotifier = new TrayNotifier();
             return System.Threading.Tasks.Task.CompletedTask;
         });
 

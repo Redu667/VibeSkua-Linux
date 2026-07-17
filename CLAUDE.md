@@ -177,11 +177,17 @@ Done in the parity pass (each mirrors the WPF behavior):
   jump/load-script/scheduler/throttle, incl. the /tmp side-channel files).
   Tests: `ArmyBusTests`.
 
+- **Pop-out managed windows**: real `WindowService` (lazy `HostWindow` per
+  registered key, hide-on-close like WPF's `HideWindow=True`, recipient
+  `IsActive` on show) + the shared `ManagedWindows.Register`/`RegisterForManager`
+  registry wired at startup — `OpenConsole`/`SearchScripts` hotkeys and every
+  `ShowManagedWindow` caller work. Tests: `WindowServiceTests`.
+- **Tray icon + notifications**: `TrayIcon` with Show/Hide + Exit menu and
+  click-to-toggle (window icon set too); `TrayNotifier` raises `notify-send`
+  desktop notifications for script stopped/error/relogin while the window is
+  hidden or minimized (WPF balloon parity).
+
 Known remaining gaps (from the full WPF-vs-Avalonia sweep; largest first):
-- **WindowService is a no-op** — no pop-out managed windows (`OpenConsole` /
-  `SearchScripts` hotkey targets silently do nothing).
-- **Tray icon + balloon notifications** (script stopped/error/relogin) —
-  Avalonia has `TrayIcon`; not wired.
 - **Theme/color-scheme editing** — base dark/light works; presets/custom
   schemes are stubs (`ThemeService`), so ColorSchemeEditor/ApplicationThemes
   panels don't apply anything.
