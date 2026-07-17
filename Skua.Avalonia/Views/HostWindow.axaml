@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Skua.Avalonia.Views.HostWindow"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True">
+
+    <!-- Non-modal twin of Skua.WPF's HostWindow: the ViewModel is the
+         DataContext and the ViewLocator materializes its view. Title/size/
+         resizability come from IManagedWindow in code-behind. -->
+    <ContentControl Content="{ReflectionBinding}" />
+
+</Window>
