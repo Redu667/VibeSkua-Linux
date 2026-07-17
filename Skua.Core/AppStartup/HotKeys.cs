@@ -268,6 +268,11 @@ public class HotKeys
 
     private static bool CanExecuteHotKey()
     {
+        // On non-Windows there is no user32; hotkeys are window-scoped input
+        // bindings there, so having focus is already implied when they fire.
+        if (!OperatingSystem.IsWindows())
+            return true;
+
         try
         {
             IntPtr foregroundWindow = GetForegroundWindow();
@@ -333,6 +338,12 @@ public class HotKeys
 
     private static void BroadcastArmyMessage(uint msg, int wParam, int lParam)
     {
+        // The WM-broadcast army bus is Windows-only. On Linux the local part of
+        // each Army* action (its own option toggle) still runs; a cross-client
+        // bus over Unix domain sockets is tracked as follow-up parity work.
+        if (!OperatingSystem.IsWindows())
+            return;
+
         var skuaProcesses = System.Diagnostics.Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName);
         var pids = skuaProcesses.Select(p => p.Id).ToHashSet();
         

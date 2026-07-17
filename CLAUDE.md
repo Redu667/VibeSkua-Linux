@@ -154,6 +154,37 @@ Hard-won lessons already fixed — do NOT regress these (each has a test):
 - Remaining Avalonia views/panels polish (Layer 2 grind) — wait for the user to
   name concrete rough edges; don't speculatively rewrite working views.
 
+## Feature parity vs Windows Skua (gap analysis 2026-07-17)
+
+Done in the parity pass (each mirrors the WPF behavior):
+- **Hotkeys work**: real `HotKeyService` (WPF-format gestures → Avalonia
+  `KeyBinding`s on the main window, shared "HotKeys" setting, default seeding),
+  `Reload()` called at startup, and `Skua.Core/AppStartup/HotKeys.cs` guards:
+  `CanExecuteHotKey` returns true off-Windows (bindings are window-scoped so
+  focus is implied); the WM army broadcast no-ops off-Windows instead of
+  throwing. Tests: `HotKeyServiceTests`.
+- **Startup side-work** (`App.RunStartupTasks`): plugin manager Initialize,
+  hotkey reload, server-list preload in every window; app-update check + bot
+  scripts / advanced skill sets / quest data / junk items update flows in the
+  manager window only (clients share the same files — N clients would race).
+- **Screenshots**: window render → PNG (Discord webhook works).
+- **CLI parity**: `--gh-token`, `--use-theme` (base dark/light).
+
+Known remaining gaps (from the full WPF-vs-Avalonia sweep; largest first):
+- **Army cross-client bus** — Windows uses `EnumWindows`+`PostMessage` WM
+  broadcast + `WM_COPYDATA` forwarding; Linux needs a Unix-domain-socket bus so
+  Army* hotkeys drive all clients. Local half of each toggle already works.
+- **WindowService is a no-op** — no pop-out managed windows (`OpenConsole` /
+  `SearchScripts` hotkey targets silently do nothing).
+- **Tray icon + balloon notifications** (script stopped/error/relogin) —
+  Avalonia has `TrayIcon`; not wired.
+- **Theme/color-scheme editing** — base dark/light works; presets/custom
+  schemes are stubs (`ThemeService`), so ColorSchemeEditor/ApplicationThemes
+  panels don't apply anything.
+- Minor: `Console.Beep(freq,duration)` downgrades to plain beep; clipboard
+  custom formats collapse to text; no single-instance guard; no periodic
+  GC/priority tuning; WinForms shim means script-made WinForms UIs no-op.
+
 ---
 
 ## Layer 2 (Avalonia) — start after 3b, or in parallel
