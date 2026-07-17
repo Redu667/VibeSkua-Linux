@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="320"
+             x:Class="Skua.Avalonia.Views.CBOLoadoutView"
+             x:DataType="vm:CBOLoadoutViewModel">
+
+    <!-- Composite: class-select + class-equipment rendered by the ViewLocator. -->
+    <Grid ColumnDefinitions="*,*">
+        <ContentControl Grid.Column="0" Content="{Binding ClassSelectViewModel}" />
+        <ContentControl Grid.Column="1" Content="{Binding ClassEquipmentViewModel}" />
+    </Grid>
+
+</UserControl>

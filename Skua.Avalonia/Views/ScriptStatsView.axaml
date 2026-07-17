@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="260"
+             x:Class="Skua.Avalonia.Views.ScriptStatsView"
+             x:DataType="vm:ScriptStatsViewModel">
+
+    <!-- Bound to the live engine (IScriptBotStats) through IScriptInterface. -->
+    <StackPanel Margin="24" Spacing="10">
+        <TextBlock Text="Session stats" FontSize="16" FontWeight="Bold" />
+
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Kills" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScriptStats.Kills}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Drops" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScriptStats.Drops}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Quests accepted" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScriptStats.QuestsAccepted}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Quests completed" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ScriptStats.QuestsCompleted}" />
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Deaths" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScriptStats.Deaths}" />
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Relogins" />
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ScriptStats.Relogins}" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Reset" Command="{Binding ResetStatsCommand}" />
+            <Button Content="Get inventory space" Command="{Binding GetSpaceCommand}" />
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>

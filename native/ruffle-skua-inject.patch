@@ -1,0 +1,96 @@
+diff --git a/core/src/player.rs b/core/src/player.rs
+index 3bc333952..f864d8e14 100644
+--- a/core/src/player.rs
++++ b/core/src/player.rs
+@@ -2467,6 +2467,91 @@ impl Player {
+         })
+     }
+ 
++    /// Load `bytes` (e.g. Skua's `skua.swf`) into the running player as a
++    /// secondary movie whose ApplicationDomain is a child of the *root movie's*
++    /// domain, so its ActionScript can resolve the game's definitions
++    /// (`ApplicationDomain.getDefinition("world")`, `mcLogin`, …) and register
++    /// its `ExternalInterface` callbacks against the same live player.
++    ///
++    /// This mirrors what `flash.display.Loader.loadBytes` does
++    /// (`core/src/avm2/globals/flash/display/loader.rs::load_bytes`), but is
++    /// callable from host (embedder) code — the Skua bridge has no AS3 movie of
++    /// its own from which to invoke `Loader`, and every type this needs
++    /// (`LoaderInfoObject`, `LoaderDisplay`, `Avm2Domain`) lives in private
++    /// modules unreachable from an external crate. The loader runs
++    /// asynchronously; tick the player a few frames afterwards to let it finish.
++    pub fn inject_swf_same_domain(&mut self, bytes: Vec<u8>) -> Result<(), String> {
++        use crate::avm2::Activation as Avm2Activation;
++        use crate::avm2::globals::flash::display::loader::loader_allocator;
++        use crate::avm2::globals::slots::flash_display_loader as loader_slots;
++        use crate::avm2::object::TObject as _;
++        use crate::display_object::{MovieClip, TDisplayObject, TDisplayObjectContainer};
++        use crate::loader::{LoadManager, MovieLoaderVMData};
++        use crate::tag_utils::SwfMovie;
++        use ruffle_common::tag_utils::LoadBytesInfo;
++        use std::sync::Arc;
++
++        self.mutate_with_update_context(|context| {
++            let mut activation = Avm2Activation::from_nothing(context);
++
++            // A Loader + its `contentLoaderInfo`, exactly as `loadBytes` uses.
++            let loader_class = activation.avm2().classes().loader;
++            let loader = loader_allocator(loader_class, &mut activation)
++                .map_err(|e| format!("loader_allocator failed: {e:?}"))?;
++            let loader_info = loader
++                .get_slot(loader_slots::_CONTENT_LOADER_INFO)
++                .as_object()
++                .and_then(|o| o.as_loader_info_object())
++                .ok_or_else(|| "loader has no contentLoaderInfo".to_string())?;
++
++            // Attach the Loader to the stage so its loaded content actually RUNS
++            // (frame scripts / document-class constructor — where skua.swf calls
++            // ExternalInterface.addCallback). A loadBytes movie that's never in
++            // the display tree loads but never ticks. Keep it invisible so it
++            // never draws over the game (skua.swf has no visuals anyway).
++            let loader_do = loader
++                .as_display_object()
++                .ok_or_else(|| "loader is not a display object".to_string())?;
++            loader_do.set_visible(activation.context, false);
++            let mut stage = activation.context.stage;
++            let index = stage.num_children();
++            stage.insert_at_index(activation.context, loader_do, index as usize);
++
++            // Dummy content clip (overwritten by the loader), as in `loadBytes`.
++            let root = activation.context.root_swf.clone();
++            let content = MovieClip::new(
++                Arc::new(SwfMovie::empty(root.version(), Some(root.url().into()))),
++                activation.gc(),
++            );
++
++            // Load into a child of the ROOT movie's domain, so the injected SWF
++            // resolves the game's definitions (`world`, `mcLogin`, …) via
++            // `getDefinition` — a sibling/stage domain could not see them.
++            let default_domain = activation
++                .context
++                .library
++                .library_for_movie_mut(root.clone())
++                .avm2_domain();
++
++            let loader_url = root.url().to_string();
++            let loader_sandbox_type = root.sandbox_type();
++
++            LoadManager::load_movie_into_clip_bytes(
++                activation.context,
++                content.into(),
++                bytes,
++                loader_url,
++                MovieLoaderVMData::Avm2 {
++                    loader_info,
++                    context: None,
++                    default_domain,
++                    load_bytes_info: Some(LoadBytesInfo { loader_sandbox_type }),
++                },
++            )
++            .map_err(|e| format!("load_movie_into_clip_bytes failed: {e:?}"))
++        })
++    }
++
+     pub fn spoofed_url(&self) -> Option<&str> {
+         self.spoofed_url.as_deref()
+     }

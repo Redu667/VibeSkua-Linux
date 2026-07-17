@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <StartupObject>Skua.Manager.Program</StartupObject>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <WithCulture>false</WithCulture>
+    <NeutralLanguage>en</NeutralLanguage>
+    <ApplicationIcon>SkuaIcon.ico</ApplicationIcon>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <Product>VibeSkua Manager</Product>
+    <Title>VibeSkua Manager</Title>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="SkuaIcon.ico" />
+  </ItemGroup>
+	<ItemGroup>
+	    <None Include="..\Skua.AS3\skua\bin\skua.swf" Link="skua.swf">
+		    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    </None>
+    </ItemGroup> 
+	
+
+    <ItemGroup>
+        <PackageReference Include="Extended.Wpf.Toolkit" Version="5.0.0" />
+        <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+    <ProjectReference Include="..\Skua.WPF\Skua.WPF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
+    <MakeDir Directories="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.exe" DestinationFolder="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.dll" DestinationFolder="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.runtimeconfig.json" DestinationFolder="..\Build\$(PlatformName)" />
+  </Target>
+
+</Project>
+

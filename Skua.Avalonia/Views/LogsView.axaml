@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="440"
+             x:Class="Skua.Avalonia.Views.LogsView"
+             x:DataType="vm:LogsViewModel">
+
+    <TabControl Margin="8" ItemsSource="{Binding LogTabs}" SelectedItem="{Binding SelectedTab}">
+        <TabControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LogTabViewModel">
+                <TextBlock Text="{Binding Title}" />
+            </DataTemplate>
+        </TabControl.ItemTemplate>
+        <TabControl.ContentTemplate>
+            <DataTemplate x:DataType="vm:LogTabViewModel">
+                <ListBox ItemsSource="{Binding Logs}" FontFamily="monospace" />
+            </DataTemplate>
+        </TabControl.ContentTemplate>
+    </TabControl>
+
+</UserControl>

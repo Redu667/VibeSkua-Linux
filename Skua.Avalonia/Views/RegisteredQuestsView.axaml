@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="460" d:DesignHeight="360"
+             x:Class="Skua.Avalonia.Views.RegisteredQuestsView"
+             x:DataType="vm:RegisteredQuestsViewModel">
+
+    <DockPanel Margin="24" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top" Spacing="8">
+            <TextBlock Text="Registered quests" FontSize="16" FontWeight="Bold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBox Width="110" Watermark="quest id" Text="{Binding AddQuestInput}" />
+                <TextBox Width="130" Watermark="reward id (opt)" Text="{Binding RewardIdInput}" />
+                <Button Content="Add" Command="{Binding AddQuestCommand}" />
+                <Button Content="Remove all" Command="{Binding RemoveAllQuestsCommand}" />
+            </StackPanel>
+        </StackPanel>
+
+        <ListBox Margin="0,10,0,0" ItemsSource="{Binding CurrentAutoQuests}" />
+    </DockPanel>
+
+</UserControl>

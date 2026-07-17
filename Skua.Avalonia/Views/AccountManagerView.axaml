@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels.Manager;assembly=Skua.Core"
+             xmlns:vmc="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Skua.Avalonia.Views.AccountManagerView"
+             x:DataType="vm:AccountManagerViewModel">
+
+    <Grid Margin="6" RowDefinitions="Auto,*,Auto,Auto">
+
+        <!-- Add-account form -->
+        <Border Grid.Row="0" Padding="8" Margin="0,0,0,6"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="1" CornerRadius="4">
+            <Grid ColumnDefinitions="*,*,*,Auto">
+                <TextBox Grid.Column="0" Margin="0,0,4,0" Watermark="Username"
+                         Text="{Binding UsernameInput, Mode=TwoWay}" />
+                <TextBox Grid.Column="1" Margin="4,0" Watermark="Password"
+                         PasswordChar="•" Text="{Binding PasswordInput, Mode=TwoWay}" />
+                <TextBox Grid.Column="2" Margin="4,0" Watermark="Display name (optional)"
+                         Text="{Binding DisplayNameInput, Mode=TwoWay}" />
+                <Button Grid.Column="3" Margin="4,0,0,0" Content="Add"
+                        Command="{Binding AddAccountCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- Accounts / Groups tabs -->
+        <TabControl Grid.Row="1">
+            <TabItem Header="Accounts">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,4,0,6">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{Binding SelectedAccountQuant, StringFormat='Selected: {0}'}" />
+                        <Button Content="Remove selected" Command="{Binding RemoveAccountsCommand}" />
+                        <Button Content="Deselect all" Command="{Binding DeselectAllCommand}" />
+                        <ToggleButton Content="Tags" IsChecked="{Binding ShowTags}" />
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding FilteredAccounts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vmc:AccountItemViewModel">
+                                    <Border Margin="0,0,0,4" Padding="10,6" CornerRadius="4"
+                                            BorderThickness="1"
+                                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                            <CheckBox Grid.Column="0" Margin="0,0,8,0"
+                                                      IsChecked="{Binding UseCheck}" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                                       FontWeight="Medium" Text="{Binding DisplayName}" />
+                                            <Button Grid.Column="2" Content="Start"
+                                                    Command="{Binding StartCommand}" />
+                                            <Button Grid.Column="3" Margin="4,0" Content="Tags"
+                                                    Command="{Binding AddTagsCommand}" />
+                                            <Button Grid.Column="4" Content="Remove"
+                                                    Command="{Binding RemoveCommand}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Groups">
+                <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding Groups}" Margin="6,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:GroupItemViewModel">
+                                <Border Margin="0,0,0,6" Padding="10,6" CornerRadius="4"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                                   FontWeight="Medium" Text="{Binding Name}" />
+                                        <Button Grid.Column="1" Content="Start"
+                                                Command="{Binding StartCommand}" />
+                                        <Button Grid.Column="2" Margin="4,0" Content="Rename"
+                                                Command="{Binding RenameCommand}" />
+                                        <Button Grid.Column="3" Content="Remove"
+                                                Command="{Binding RemoveCommand}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Server + start controls -->
+        <Border Grid.Row="2" Padding="8,4">
+            <Grid ColumnDefinitions="2*,Auto">
+                <ComboBox Grid.Column="0" Margin="0,0,6,0" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding ServerList}" SelectedItem="{Binding SelectedServer}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                <TextBlock Opacity="0.6" Text="{Binding Ping, StringFormat=' {0}ms'}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                    <Button Content="Start selected" Command="{Binding StartAccountsCommand}" />
+                    <Button Content="Start all" Command="{Binding StartAllAccountsCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Script section -->
+        <Border Grid.Row="3" Padding="8,4">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <DockPanel Grid.Column="0">
+                    <Button DockPanel.Dock="Right" Content="Browse"
+                            Command="{Binding OpenGetScriptsCommand}" />
+                    <Button DockPanel.Dock="Right" Margin="0,0,4,0" Content="Folder"
+                            Command="{Binding ChangeScriptPathCommand}" />
+                    <Border BorderThickness="1" CornerRadius="4" Padding="10,0"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{Binding ScriptPath, FallbackValue='No script selected'}" />
+                    </Border>
+                </DockPanel>
+                <CheckBox Grid.Column="1" Margin="12,0,0,0" Content="Auto-start"
+                          IsChecked="{Binding StartWithScript}" />
+                <Button Grid.Column="2" Margin="12,0,0,0" Content="Save Setup"
+                        Command="{Binding SaveSetupCommand}" />
+            </Grid>
+        </Border>
+    </Grid>
+
+</UserControl>

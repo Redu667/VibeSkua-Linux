@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="440"
+             x:Class="Skua.Avalonia.Views.RuntimeHelpersView"
+             x:DataType="vm:RuntimeHelpersViewModel">
+
+    <!-- Each tab's content is a nested ViewModel; the ViewLocator renders the
+         already-ported ToPickupDropsView / RegisteredQuestsView / BoostsView. -->
+    <TabControl>
+        <TabItem Header="Pickup Drops">
+            <ContentControl Content="{Binding ToPickupDropsViewModel}" />
+        </TabItem>
+        <TabItem Header="Registered Quests">
+            <ContentControl Content="{Binding RegisteredQuestsViewModel}" />
+        </TabItem>
+        <TabItem Header="Boosts">
+            <ContentControl Content="{Binding BoostsViewModel}" />
+        </TabItem>
+    </TabControl>
+
+</UserControl>

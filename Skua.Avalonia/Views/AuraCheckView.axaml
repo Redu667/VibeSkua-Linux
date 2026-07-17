@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="48"
+             x:Class="Skua.Avalonia.Views.AuraCheckView"
+             x:DataType="vm:AuraCheckViewModel">
+
+    <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,2">
+        <TextBox Grid.Column="0" Watermark="Aura name" Text="{Binding AuraName}" />
+        <ToggleSwitch Grid.Column="1" Margin="6,0" IsChecked="{Binding IsGreater}"
+                      OnContent="≥" OffContent="≤" />
+        <TextBox Grid.Column="2" Width="70" Margin="6,0" Watermark="stacks"
+                 Text="{Binding StackCount}" />
+        <ComboBox Grid.Column="3" SelectedIndex="{Binding AuraTargetIndex}" Width="90">
+            <ComboBoxItem>self</ComboBoxItem>
+            <ComboBoxItem>target</ComboBoxItem>
+        </ComboBox>
+    </Grid>
+
+</UserControl>

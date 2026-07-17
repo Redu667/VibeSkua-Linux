@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             xmlns:items="clr-namespace:Skua.Core.Models.Items;assembly=Skua.Core.Models"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+             x:Class="Skua.Avalonia.Views.CurrentDropsView"
+             x:DataType="vm:CurrentDropsViewModel">
+
+    <DockPanel Margin="24" LastChildFill="True">
+        <TextBlock DockPanel.Dock="Top" Text="Current drops" FontSize="16" FontWeight="Bold"
+                   Margin="0,0,0,10" />
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,10,0,0">
+            <Button Content="Pickup" Command="{Binding PickupCommand}" />
+            <Button Content="Pickup all" Command="{Binding PickupAllCommand}" />
+            <Button Content="Pickup AC items" Command="{Binding PickupACCommand}" />
+        </StackPanel>
+
+        <ListBox ItemsSource="{Binding CurrentDrops}"
+                 SelectedItem="{Binding SelectedDrop}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="items:ItemBase">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Quantity}" Foreground="#A6ADC8" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+
+</UserControl>

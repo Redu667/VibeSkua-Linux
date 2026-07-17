@@ -1,0 +1,119 @@
+[package]
+name = "skua-flash-bridge"
+version = "0.1.0"
+edition = "2021"
+description = "Linux ExternalInterface bridge between Skua.Core (C#) and a Flash runtime (Ruffle). Layer 3b of the VibeSkua native Linux port."
+license = "MIT OR Apache-2.0"
+
+# Two crate types on purpose:
+#   cdylib -> libskua_flash.so, the object C# [DllImport]s at runtime.
+#   rlib   -> lets the integration tests link the Rust API directly.
+[lib]
+name = "skua_flash"
+crate-type = ["cdylib", "rlib"]
+
+# The DEFAULT build has ZERO external dependencies.
+#
+# The ExternalInterface XML grammar is small and closed, so it is hand-rolled
+# in src/xml.rs rather than pulling a general XML crate. That keeps the shipped
+# .so free of transitive dependencies and — more importantly here — lets the
+# whole bridge build and its tests pass with no network access at all.
+[dependencies]
+
+# --- Optional: the real Ruffle runtime ---------------------------------------
+#
+# `ruffle_core` is a git-only dependency (github.com/ruffle-rs/ruffle, NOT on
+# crates.io). It is kept behind the OPTIONAL `ruffle` feature so the default
+# `cargo build` / `cargo test` and the offline CI job stay dependency-free and
+# green (src/ruffle_runtime.rs is `#[cfg(feature = "ruffle")]`).
+#
+# For a HEADLESS ExternalInterface host we only need `ruffle_core` — the player
+# falls back to the built-in NullRenderer / NullAudio / NullNavigator backends
+# (see PlayerBuilder::build), so no wgpu/tokio/url are pulled in. This keeps the
+# feature build tractable and is exactly what Skua's farm/army headless mode
+# wants (the viewport is collapsed to 1x1 anyway).
+#
+# Pinned to the nightly the runtime was verified against. Build the real
+# runtime with:  cargo build --release --features ruffle
+[dependencies.ruffle_core]
+git = "https://github.com/ruffle-rs/ruffle"
+rev = "f47766fdb17c46ad720f2c9861f62a17ab17b33c"
+optional = true
+
+# --- Optional: offscreen wgpu rendering (the `ruffle-render` feature) ---------
+# Adds the wgpu render backend so the game can be drawn to an offscreen texture
+# and read back as RGBA pixels (WgpuRenderBackend::capture_frame), which the C#
+# side blits into an Avalonia bitmap. Heavier build than headless `ruffle`.
+[dependencies.ruffle_render_wgpu]
+git = "https://github.com/ruffle-rs/ruffle"
+rev = "f47766fdb17c46ad720f2c9861f62a17ab17b33c"
+optional = true
+
+[dependencies.futures]
+version = "0.3"
+optional = true
+
+# Minimal navigator deps (feature `ruffle-render`): blocking HTTP (ureq) for
+# asset fetches + the url/encoding/indexmap types the NavigatorBackend trait
+# signatures require. Versions unify with ruffle_core's own copies via Cargo so
+# the shared trait types match.
+[dependencies.ureq]
+version = "2"
+optional = true
+
+[dependencies.url]
+version = "2"
+optional = true
+
+[dependencies.encoding_rs]
+version = "0.8"
+optional = true
+
+[dependencies.indexmap]
+version = "2"
+optional = true
+
+[dependencies.async-channel]
+version = "2.5"
+optional = true
+
+# Ruffle reports every AVM2 error/stub through `tracing`; without a subscriber
+# they vanish, which made in-game failures (e.g. a black screen after a loader
+# error) undiagnosable in the shipped app. The render feature installs a
+# subscriber that appends WARN+ to ~/.config/Skua/vibeskua-ruffle.log.
+[dependencies.tracing-subscriber]
+version = "0.3"
+features = ["env-filter"]
+optional = true
+
+[features]
+# `ruffle` pulls in ruffle_core and compiles src/ruffle_runtime.rs. Left off by
+# default so the transport crate builds/tests with no network (see note above).
+ruffle = ["dep:ruffle_core"]
+# `ruffle-render` additionally pulls in the wgpu renderer for the visible game
+# view. Implies `ruffle`. (RgbaImage pixels come back through ruffle's own
+# `image` crate, so we don't add our own to avoid a version clash.)
+ruffle-render = ["ruffle", "dep:ruffle_render_wgpu", "dep:futures", "dep:ureq", "dep:url", "dep:encoding_rs", "dep:indexmap", "dep:async-channel", "dep:tracing-subscriber"]
+
+[profile.release]
+opt-level = 3
+lto = true
+
+# NOTE: the `[patch."https://github.com/ruffle-rs/ruffle"]` block that redirects
+# ruffle_core to the locally-patched fork (adding Player::inject_swf_same_domain)
+# is NOT committed here — native/prepare-ruffle-fork.sh appends it when the fork
+# is prepared. Committing it would break the default/offline `cargo build` (no
+# ruffle feature): Cargo reads every patch path even when unused, and
+# `.ruffle-fork/` only exists after prepare runs.
+
+[dev-dependencies]
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[[example]]
+name = "boot_skua"
+required-features = ["ruffle-render"]
+
+
+
+
+

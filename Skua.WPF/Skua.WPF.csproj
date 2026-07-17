@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+      <UseWindowsForms>true</UseWindowsForms>
+      <Platforms>AnyCPU;x64;x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);FodyPackageReference</NoWarn>
+    
+    <!-- Performance optimizations -->
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="SkuaImage.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+
+    <PackageReference Include="Caseless.Fody" Version="1.9.1" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.269">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="MdXaml" Version="1.27.0" />
+    <PackageReference Include="MdXaml.Plugins" Version="1.27.0" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AxInterop.ShockwaveFlashObjects">
+      <HintPath>..\Skua.App.WPF\Assemblies\AxInterop.ShockwaveFlashObjects.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="SkuaImage.png" />
+  </ItemGroup>
+
+</Project>
+

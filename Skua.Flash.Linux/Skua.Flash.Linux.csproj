@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    Linux implementation of IFlashUtil. Mirrors Skua.WPF/Flash/FlashUtil.cs but
+    swaps the AxShockwaveFlash ActiveX control for libskua_flash.so (Layer 3b,
+    native/skua-flash-bridge). The two projects share the same ExternalInterface
+    XML wire format, so the same skua.swf answers identically on both platforms.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Core.Interfaces\Skua.Core.Interfaces.csproj" />
+    <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+</Project>

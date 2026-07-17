@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="460"
+             x:Class="Skua.Avalonia.Views.ScriptRepoView"
+             x:DataType="vm:ScriptRepoViewModel">
+
+    <DockPanel Margin="24" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top" Spacing="8">
+            <TextBlock Text="Scripts" FontSize="16" FontWeight="Bold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Refresh" Command="{Binding RefreshScriptsCommand}" />
+                <Button Content="Download All" Command="{Binding DownloadAllCommand}"
+                        ToolTip.Tip="Download every script and shared library (CoreBots, CoreAdvanced, …) that is missing or out of date, so scripts run without fetching dependencies mid-start." />
+                <Button Content="Update All" Command="{Binding UpdateAllCommand}"
+                        ToolTip.Tip="Re-download only the already-downloaded scripts that changed upstream." />
+                <Button Content="Download" Command="{Binding DownloadCommand}" />
+                <Button Content="Open" Command="{Binding OpenScriptCommand}" />
+                <Button Content="Load local" Command="{Binding LoadLocalScriptCommand}" />
+                <Button Content="Delete" Command="{Binding DeleteCommand}" />
+                <Button Content="Open folder" Command="{Binding OpenScriptFolderCommand}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBusy}">
+                <ProgressBar IsIndeterminate="True" Width="140" />
+                <TextBlock Text="{Binding ProgressReportMessage}" Foreground="#A6ADC8"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </StackPanel>
+
+        <ListBox Margin="0,10,0,0" ItemsSource="{Binding Scripts}"
+                 SelectedItem="{Binding SelectedItem}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScriptInfoViewModel">
+                    <TextBlock Text="{Binding FileName}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+
+</UserControl>

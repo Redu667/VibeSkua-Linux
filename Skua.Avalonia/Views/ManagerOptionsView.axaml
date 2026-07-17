@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels.Manager;assembly=Skua.Core"
+             xmlns:vmc="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="460"
+             x:Class="Skua.Avalonia.Views.ManagerOptionsView"
+             x:DataType="vm:ManagerOptionsViewModel">
+
+    <DockPanel Margin="24" LastChildFill="True">
+        <TextBlock DockPanel.Dock="Top" Text="Manager Options" FontSize="16" FontWeight="Bold"
+                   Margin="0,0,0,10" />
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                       Text="Client download path:" />
+            <TextBox Grid.Column="1" VerticalAlignment="Center" IsReadOnly="True"
+                     Text="{Binding DownloadPath}" />
+            <Button Grid.Column="2" Margin="8,0,0,0" Content="Change"
+                    Command="{Binding ChangeDownloadPathCommand}" />
+        </Grid>
+
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding ManagerOptions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vmc:DisplayOptionItemViewModelBase">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Content}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Description}" Foreground="#A6ADC8" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBox Grid.Column="1" Width="130" VerticalAlignment="Center"
+                                     Text="{Binding Value, Mode=TwoWay}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+
+</UserControl>

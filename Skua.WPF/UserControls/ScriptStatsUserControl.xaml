@@ -1,0 +1,119 @@
+﻿<UserControl
+    x:Class="Skua.WPF.UserControls.ScriptStatsUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Skua.WPF.UserControls"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+    d:DataContext="{d:DesignInstance vms:ScriptStatsViewModel}"
+    d:DesignHeight="300"
+    mc:Ignorable="d" Width="330">
+    <Grid Grid.IsSharedSizeScope="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Button
+            Grid.Row="7"
+            Margin="1,3,2,0"
+            Command="{Binding ResetStatsCommand}"
+            Content="Reset" />
+        <Button
+            Grid.Row="7"
+            Grid.Column="1"
+            Margin="2,3,1,0"
+            Command="{Binding GetSpaceCommand}"
+            Content="Get Space" />
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="0"
+            Icon="Backpack"
+            Label="Inventory Free"
+            Value="{Binding ScriptStats.InventoryFreeSpace}"/>
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="1"
+            Icon="None"
+            Label="Inventory Used"
+            Value="{Binding ScriptStats.InventoryFilledSpace}"/>
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="2"
+            Icon="None"
+            Label="Inventory Max"
+            Value="{Binding ScriptStats.InventorySpace}"/>
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="4"
+            Icon="Bank"
+            Label="Bank Free"
+            Value="{Binding ScriptStats.BankFreeSpace}"/>
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="5"
+            Icon="None"
+            Label="Bank Used"
+            Value="{Binding ScriptStats.BankFilledSpace}"/>
+        <local:StatItemUserControl
+            Grid.Column="1"
+            Grid.Row="6"
+            Icon="None"
+            Label="Bank Max"
+            Value="{Binding ScriptStats.BankSpace}"/>
+        <local:StatItemUserControl
+            Grid.Row="0"
+            Grid.Column="0"
+            Icon="Sword"
+            Label="Kills:"
+            Value="{Binding ScriptStats.Kills}" />
+        <local:StatItemUserControl
+            Grid.Row="1"
+            Grid.Column="0"
+            Icon="Dead"
+            Label="Deaths:"
+            Value="{Binding ScriptStats.Deaths}" />
+        <local:StatItemUserControl
+            Grid.Row="2"
+            Grid.Column="0"
+            Icon="ProgressQuestion"
+            Label="Accepted:"
+            Value="{Binding ScriptStats.QuestsAccepted}" />
+        <local:StatItemUserControl
+            Grid.Row="3"
+            Grid.Column="0"
+            Icon="QuestionMarkCircle"
+            Label="Completed:"
+            Value="{Binding ScriptStats.QuestsCompleted}" />
+        <local:StatItemUserControl
+            Grid.Row="4"
+            Grid.Column="0"
+            Icon="Backpack"
+            Label="Pickups:"
+            Value="{Binding ScriptStats.Drops}" />
+        <local:StatItemUserControl
+            Grid.Row="5"
+            Grid.Column="0"
+            Icon="Reload"
+            Label="Re-logins:"
+            Value="{Binding ScriptStats.Relogins}" />
+        <local:StatItemUserControl
+            Grid.Row="6"
+            Grid.Column="0"
+            Icon="Hourglass"
+            Label="Time:"
+            Value="{Binding ScriptStats.Time, StringFormat=hh\\:mm\\:ss}" />
+    </Grid>
+</UserControl>

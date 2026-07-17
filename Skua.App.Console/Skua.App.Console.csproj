@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <AssemblyName>Skua.App.Console</AssemblyName>
+    <RootNamespace>Skua.App.Console</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Flash.Linux\Skua.Flash.Linux.csproj" />
+  </ItemGroup>
+
+  <!--
+    Build the Layer 3b Rust bridge (libskua_flash.so) as part of `dotnet build`
+    and drop it next to the managed output so DllImport("skua_flash") resolves.
+    The bridge has zero external crates, so this needs no network access.
+  -->
+  <PropertyGroup>
+    <BridgeDir>$(MSBuildProjectDirectory)/../native/skua-flash-bridge</BridgeDir>
+    <BridgeSo>$(BridgeDir)/target/release/libskua_flash.so</BridgeSo>
+    <!-- Default: offline mock runtime. -p:SkuaRuffle=true (or SKUA_RUFFLE=1)
+         embeds real ruffle_core (needs a nightly toolchain + network). -->
+    <SkuaRuffle Condition="'$(SkuaRuffle)' == '' and '$(SKUA_RUFFLE)' != ''">true</SkuaRuffle>
+    <CargoCommand Condition="'$(SkuaRuffle)' == 'true'">cargo +nightly build --release --features ruffle-render</CargoCommand>
+    <CargoCommand Condition="'$(CargoCommand)' == ''">cargo build --release</CargoCommand>
+  </PropertyGroup>
+
+  <Target Name="BuildFlashBridge" BeforeTargets="Build;Run">
+    <Exec Condition="'$(SkuaRuffle)' == 'true'"
+          Command="bash prepare-ruffle-fork.sh"
+          WorkingDirectory="$(MSBuildProjectDirectory)/../native" />
+    <Message Importance="high" Text="Building Rust flash bridge ($(CargoCommand))..." />
+    <Exec Command="$(CargoCommand)" WorkingDirectory="$(BridgeDir)" />
+  </Target>
+
+  <Target Name="CopyFlashBridge" AfterTargets="Build" DependsOnTargets="BuildFlashBridge">
+    <Copy SourceFiles="$(BridgeSo)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true"
+          Condition="Exists('$(BridgeSo)')" />
+  </Target>
+
+</Project>

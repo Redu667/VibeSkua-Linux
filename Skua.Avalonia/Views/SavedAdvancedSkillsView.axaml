@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="420"
+             x:Class="Skua.Avalonia.Views.SavedAdvancedSkillsView"
+             x:DataType="vm:SavedAdvancedSkillsViewModel">
+
+    <DockPanel Margin="16" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top" Spacing="8">
+            <TextBlock Text="Saved skill sets" FontSize="14" FontWeight="Bold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ComboBox Width="150" ItemsSource="{Binding AvailableClasses}"
+                          SelectedItem="{Binding SelectedClassName}" />
+                <ComboBox Width="120" ItemsSource="{Binding AvailableModes}"
+                          SelectedItem="{Binding SelectedMode}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Refresh" Command="{Binding RefreshSkillsCommand}" />
+                <Button Content="Reset set" Command="{Binding ResetSkillsSetCommand}" />
+                <Button Content="Edit" Command="{Binding EditSelectedCommand}" />
+                <Button Content="Remove" Command="{Binding RemoveSelectedCommand}" />
+            </StackPanel>
+        </StackPanel>
+
+        <ListBox Margin="0,10,0,0" ItemsSource="{Binding LoadedSkills}"
+                 SelectedItem="{Binding SelectedSkill}" />
+    </DockPanel>
+
+</UserControl>

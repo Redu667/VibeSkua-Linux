@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="160"
+             x:Class="Skua.Avalonia.Views.MessageBoxDialogView"
+             x:DataType="vm:MessageBoxDialogViewModel">
+
+    <StackPanel Margin="20" Spacing="16" MinWidth="300">
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Yes" IsVisible="{Binding YesAndNo}" MinWidth="70" />
+            <Button Content="No" IsVisible="{Binding YesAndNo}" MinWidth="70" />
+            <Button Content="OK" IsVisible="{Binding !YesAndNo}" MinWidth="70" />
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>

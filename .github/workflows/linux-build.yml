@@ -1,0 +1,99 @@
+name: Linux Native Build
+
+# Builds and tests the native-Linux port: the Rust Flash bridge, the Core
+# assemblies, and the headless smoke test — all without Wine or a VM.
+on:
+  push:
+    branches: [main, 'claude/**']
+    paths:
+      - 'Skua.Core*/**'
+      - 'Skua.Flash.Linux/**'
+      - 'Skua.App.Console/**'
+      - 'Skua.Avalonia*/**'
+      - 'native/**'
+      - 'Skua.Linux.sln'
+      - '.github/workflows/linux-build.yml'
+  pull_request:
+    paths:
+      - 'Skua.Core*/**'
+      - 'Skua.Flash.Linux/**'
+      - 'Skua.App.Console/**'
+      - 'Skua.Avalonia*/**'
+      - 'native/**'
+      - 'Skua.Linux.sln'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Test Rust flash bridge
+        working-directory: native/skua-flash-bridge
+        run: cargo test --release
+
+      - name: Build Rust flash bridge (.so)
+        working-directory: native/skua-flash-bridge
+        run: cargo build --release
+
+      - name: Build Linux solution
+        run: dotnet build Skua.Linux.sln -c Release --nologo
+
+      - name: Run headless smoke test
+        run: |
+          BIN=$(find Skua.App.Console/bin -name Skua.App.Console -type f | head -1)
+          echo "Running $BIN"
+          "$BIN"
+
+      - name: Run Avalonia UI headless tests
+        run: dotnet test Skua.Avalonia.Tests/Skua.Avalonia.Tests.csproj -c Release --no-build
+
+      - name: Upload libskua_flash.so
+        uses: actions/upload-artifact@v4
+        with:
+          name: libskua_flash.so
+          path: native/skua-flash-bridge/target/release/libskua_flash.so
+
+  # The real Ruffle runtime: embeds ruffle_core (git-only, needs a nightly Rust
+  # toolchain for its let-chains/if-let-guard usage) and runs the end-to-end
+  # ExternalInterface round-trip against a real AVM2 SWF. Kept in a separate job
+  # so the offline `build` job above stays fast and dependency-free.
+  ruffle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust (nightly)
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Prepare patched ruffle_core (adds Player::inject_swf_same_domain)
+        run: ./native/prepare-ruffle-fork.sh
+
+      - name: Build bridge with embedded ruffle_core
+        working-directory: native/skua-flash-bridge
+        run: cargo build --release --features ruffle
+
+      - name: Round-trip ExternalInterface through real ruffle_core
+        working-directory: native/skua-flash-bridge
+        run: cargo test --features ruffle --test ruffle_roundtrip
+
+      - name: Prove skua.swf same-domain injection (bot control)
+        working-directory: native/skua-flash-bridge
+        run: cargo test --features ruffle --test ruffle_inject
+
+      - name: Upload libskua_flash.so (ruffle)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libskua_flash-ruffle.so
+          path: native/skua-flash-bridge/target/release/libskua_flash.so

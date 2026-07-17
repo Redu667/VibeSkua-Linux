@@ -1,0 +1,118 @@
+﻿<UserControl
+    x:Class="Skua.WPF.UserControls.DropNotifyUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+    xmlns:wpf="clr-namespace:Skua.WPF"
+    d:DataContext="{d:DesignInstance vms:NotifyDropViewModel}"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+    <Grid Margin="6">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <ListBox
+            x:Name="DropList"
+            Grid.Row="0"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="0,0,0,3"
+            ItemsSource="{Binding NotifyDropList}"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ToolTip>
+                <TextBlock>
+                    A list of all items the bot will make a sound when dropped.<LineBreak />
+                    <Run FontWeight="Bold">Delete:</Run>
+                    Removes all selected items from the list.<LineBreak />
+                    <Run FontWeight="Bold">Alt + Delete:</Run>
+                    Removes all items from the list.<LineBreak /></TextBlock>
+            </ListBox.ToolTip>
+            <ListBox.InputBindings>
+                <KeyBinding
+                    Key="Delete"
+                    Command="{Binding RemoveDropsCommand}"
+                    CommandParameter="{Binding ElementName=DropList, Path=SelectedItems}" />
+                <KeyBinding
+                    Key="Delete"
+                    Command="{Binding RemoveAllDropsCommand}"
+                    Modifiers="Alt" />
+            </ListBox.InputBindings>
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{Binding RemoveAllDropsCommand}" Header="Remove All" />
+                </ContextMenu>
+            </ListBox.ContextMenu>
+            <b:Interaction.Behaviors>
+                <wpf:ListBoxUnselectAllMenuBehavior />
+            </b:Interaction.Behaviors>
+        </ListBox>
+        <TextBox
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="0,3,3,3"
+            materialDesign:HintAssist.Hint="Drop Name"
+            AcceptsReturn="True"
+            Text="{Binding AddDropInput, UpdateSourceTrigger=PropertyChanged}">
+            <TextBox.InputBindings>
+                <KeyBinding Key="Return" Command="{Binding AddDropCommand}" />
+            </TextBox.InputBindings>
+        </TextBox>
+        <Button
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="3,3,0,3"
+            Command="{Binding AddDropCommand}"
+            Content="Add" />
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Margin="0,3,3,0"
+                materialDesign:HintAssist.Hint="Beep Count"
+                Text="{Binding SoundCount}"
+                ToolTip="Amount of times to beep.">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxOnlyNumbersBehavior />
+                </b:Interaction.Behaviors>
+            </TextBox>
+            <TextBox
+                Grid.Column="1"
+                Margin="3,3,3,0"
+                materialDesign:HintAssist.Hint="Beep Delay"
+                materialDesign:TextFieldAssist.SuffixText="ms"
+                Text="{Binding SoundDelay}"
+                ToolTip="Delay between beeps in milliseconds.">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxOnlyNumbersBehavior />
+                </b:Interaction.Behaviors>
+            </TextBox>
+            <Button
+                Grid.Column="2"
+                Margin="3,3,0,0"
+                Command="{Binding TestBeepCommand}"
+                Content="Test Beep" />
+        </Grid>
+    </Grid>
+</UserControl>

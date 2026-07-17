@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="960" d:DesignHeight="620"
+             x:Class="Skua.Avalonia.Views.GameView"
+             Focusable="True" Background="#11111B">
+
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8"
+                    VerticalAlignment="Center">
+            <Button x:Name="StartButton" Content="Start game" />
+            <Button x:Name="StopButton" Content="Stop" IsEnabled="False" />
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Opacity="0.8"
+                       Text="AQW renders here via Ruffle. Click Start game." />
+        </StackPanel>
+
+        <Border Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="Black">
+            <Image x:Name="GameImage" Width="960" Height="580"
+                   Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
+        </Border>
+    </Grid>
+
+</UserControl>

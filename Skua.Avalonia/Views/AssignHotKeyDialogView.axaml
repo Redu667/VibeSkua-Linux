@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
+             x:Class="Skua.Avalonia.Views.AssignHotKeyDialogView"
+             x:DataType="vm:AssignHotKeyDialogViewModel">
+
+    <StackPanel Margin="20" Spacing="10" MinWidth="260">
+        <TextBlock Text="{Binding InputHint}" TextWrapping="Wrap"
+                   IsVisible="{Binding InputHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <CheckBox Content="Ctrl" IsChecked="{Binding CtrlCheck}" />
+            <CheckBox Content="Alt" IsChecked="{Binding AltCheck}" />
+            <CheckBox Content="Shift" IsChecked="{Binding ShiftCheck}" />
+        </StackPanel>
+        <TextBox Watermark="Key" Text="{Binding KeyInput}" />
+        <TextBlock Text="{Binding KeyGesture}" FontWeight="Bold" />
+    </StackPanel>
+
+</UserControl>

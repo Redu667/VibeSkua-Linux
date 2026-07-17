@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="320"
+             x:Class="Skua.Avalonia.Views.GitHubAuthView"
+             x:DataType="vm:GitHubAuthViewModel">
+
+    <StackPanel Margin="24" Spacing="12" HorizontalAlignment="Left">
+        <TextBlock Text="GitHub authorization" FontSize="16" FontWeight="Bold" />
+        <TextBlock TextWrapping="Wrap" Foreground="#A6ADC8"
+                   Text="Request a device code, then open GitHub in your browser and enter it to authorize Skua." />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Get device code" Command="{Binding GetUserCodeCommand}"
+                    IsEnabled="{Binding !IsBusy}" />
+            <SelectableTextBlock Text="{Binding UserCode}" VerticalAlignment="Center"
+                                 FontFamily="monospace" FontSize="16" />
+        </StackPanel>
+
+        <Button Content="Open GitHub in browser" Command="{Binding OpenBrowserCommand}" />
+
+        <TextBlock Text="{Binding HintStatus}" TextWrapping="Wrap" Foreground="#A6ADC8" />
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Width="200"
+                     HorizontalAlignment="Left" />
+    </StackPanel>
+
+</UserControl>

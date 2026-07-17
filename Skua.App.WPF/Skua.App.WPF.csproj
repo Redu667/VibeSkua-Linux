@@ -1,0 +1,129 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StartupObject>Skua.App.WPF.Program</StartupObject>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <WithCulture>false</WithCulture>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyName>Skua</AssemblyName>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <Company>Skua</Company>
+    <Description>Scriptable C# bot for AdventureQuest Worlds</Description>
+    <ApplicationIcon>SkuaIcon.ico</ApplicationIcon>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <NoWarn>$(NoWarn);FodyPackageReference;VLP0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="QuestData.json" />
+    <None Remove="AdvancedSkills.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="QuestData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="AdvancedSkills.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Resource Include="SkuaIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Skua.AS3\skua\bin\skua.swf" Link="skua.swf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+    <ItemGroup>
+    <PackageReference Include="Caseless.Fody" Version="1.9.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+    <ProjectReference Include="..\Skua.WPF\Skua.WPF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AxInterop.ShockwaveFlashObjects">
+      <HintPath>Assemblies\AxInterop.ShockwaveFlashObjects.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.ShockwaveFlashObjects">
+      <HintPath>Assemblies\Interop.ShockwaveFlashObjects.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assemblies\AxInterop.ShockwaveFlashObjects.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\corehook32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\corehook64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\coreload32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\coreload64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\Interop.ShockwaveFlashObjects.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assemblies\System.IO.FileSystem.Watcher.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Release'">
+		<RemoveDir Directories="$(TargetDir)" Condition="Exists('$(TargetDir)')" />
+		<MakeDir Directories="$(TargetDir)FFDec" />
+		<ItemGroup>
+			<FFDecFiles Include="..\FFDec\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(FFDecFiles)" DestinationFolder="$(TargetDir)FFDec\%(RecursiveDir)" />
+	</Target>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<PdbFiles Include="$(TargetDir)*.pdb" />
+			<ConfigFiles Include="$(TargetDir)*.config" />
+		</ItemGroup>
+		<Delete Files="@(PdbFiles)" />
+		<MakeDir Directories="$(TargetDir)Assemblies" />
+		<ItemGroup>
+			<FilesToMove Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)Skua.dll;$(TargetDir)*.zip;$(TargetDir)*.swf;$(TargetDir)*.cfg;$(TargetDir)*.pspdb;$(TargetDir)*.pssym;$(TargetDir)*.json;$(TargetDir)*.txt;$(TargetDir)*.exe;$(TargetDir)*.config;$(TargetDir)*.manifest;$(TargetDir)assemblies\**;$(TargetDir)options\**;$(TargetDir)tmp\**;$(TargetDir)tools\**;$(TargetDir)plugins\**;$(TargetDir)Scripts\**;$(TargetDir)FFDec\**" />
+		</ItemGroup>
+		<Move SourceFiles="@(FilesToMove)" DestinationFolder="$(TargetDir)Assemblies\%(RecursiveDir)" />
+		<MakeDir Directories="..\Build\$(PlatformName)" Condition="'$(Configuration)' == 'Release'" />
+		<ItemGroup Condition="'$(Configuration)' == 'Release'">
+			<BuildOutputFiles Include="$(TargetDir)**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(BuildOutputFiles)" DestinationFolder="..\Build\$(PlatformName)\%(RecursiveDir)" Condition="'$(Configuration)' == 'Release'" />
+	</Target>
+
+</Project>
+

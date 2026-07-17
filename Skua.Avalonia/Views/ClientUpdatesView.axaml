@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels.Manager;assembly=Skua.Core"
+             xmlns:vmc="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="420"
+             x:Class="Skua.Avalonia.Views.ClientUpdatesView"
+             x:DataType="vm:ClientUpdatesViewModel">
+
+    <DockPanel Margin="10">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{Binding Current, StringFormat='Current version: {0}'}" FontWeight="Bold" />
+                <TextBlock Text="{Binding Status}" Opacity="0.8" />
+                <TextBlock Text="{Binding ProgressStatus}" Opacity="0.6"
+                           IsVisible="{Binding ProgressStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+            <Button Grid.Column="1" Margin="0,0,6,0" Content="Refresh"
+                    Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}" />
+            <Button Grid.Column="2" Content="Update"
+                    Command="{Binding UpdateCommand}"
+                    IsVisible="{Binding UpdateVisible}" IsEnabled="{Binding !IsBusy}" />
+        </Grid>
+
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Releases}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ClientUpdateItemViewModel">
+                        <Border Margin="0,0,0,6" Padding="10,6" CornerRadius="4"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock FontWeight="Medium" Text="{Binding Info.Name}" />
+                                    <TextBlock Opacity="0.6" FontSize="11"
+                                               Text="{Binding Info.Version}" />
+                                </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Center"
+                                        Content="Download" Command="{Binding DownloadCommand}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+
+</UserControl>

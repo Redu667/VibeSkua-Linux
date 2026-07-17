@@ -1,0 +1,46 @@
+<UserControl
+    x:Class="Skua.WPF.UserControls.SelectGroupDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Skua.WPF.UserControls"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:Skua.Core.ViewModels.Manager;assembly=Skua.Core"
+    d:DataContext="{d:DesignInstance vms:SelectGroupDialogViewModel}"
+    d:DesignHeight="150"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+    <StackPanel>
+        <TextBlock
+            Margin="6"
+            Style="{StaticResource MaterialDesignBody1TextBlock}"
+            Text="Select a group:" />
+        <ComboBox
+            Margin="6"
+            DisplayMemberPath="Name"
+            IsEditable="True"
+            IsTextSearchEnabled="True"
+            ItemsSource="{Binding Groups}"
+            SelectedItem="{Binding SelectedGroup}"
+            TextSearch.TextPath="Name"
+            materialDesign:HintAssist.Hint="Search groups..." />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                Margin="6"
+                Click="BtnConfirm_Click"
+                Content="Add"
+                IsDefault="True" />
+            <Button
+                Grid.Column="1"
+                Margin="6"
+                Content="Cancel"
+                IsCancel="True" />
+        </Grid>
+    </StackPanel>
+</UserControl>

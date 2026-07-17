@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="360"
+             x:Class="Skua.Avalonia.Views.SkillRuleEditorDialogView"
+             x:DataType="vm:SkillRuleEditorDialogViewModel">
+
+    <ContentControl Content="{Binding UseRules}" Margin="8" />
+
+</UserControl>

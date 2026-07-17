@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <!--
+    Layer 2: the native Linux UI. Replaces Skua.WPF / Skua.App.WPF. All 89
+    ViewModels already live in Skua.Core on CommunityToolkit.Mvvm and are
+    UI-framework-agnostic, so this project only supplies Avalonia Views over
+    them. Compiled bindings (x:DataType) validate each View against its real
+    Skua.Core ViewModel at build time.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.18">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <!-- Velopack: Linux AppImage packaging + in-app auto-update (see release
+         workflow). VelopackApp.Build().Run() is invoked first in Program.cs. -->
+    <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+    <!-- Linux Flash backend (Layer 3b): provides RuffleFlashUtil so the full
+         Skua engine graph can be hosted in the app. -->
+    <ProjectReference Include="..\Skua.Flash.Linux\Skua.Flash.Linux.csproj" />
+  </ItemGroup>
+
+  <!-- Bundle skua.swf next to the executable: RuffleFlashUtil injects it into the
+       live game player so the bot's callbacks (getGameObject/callGameFunction/…)
+       register against the game world. Without it, the sidebar tabs no-op. -->
+  <ItemGroup>
+    <None Include="..\Skua.AS3\skua\bin\skua.swf" Condition="Exists('..\Skua.AS3\skua\bin\skua.swf')">
+      <Link>skua.swf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Build the Rust bridge (libskua_flash.so) and flow it to the app output
+       (and to dependents/tests) so DllImport("skua_flash") resolves at runtime. -->
+  <PropertyGroup>
+    <BridgeDir>$(MSBuildProjectDirectory)/../native/skua-flash-bridge</BridgeDir>
+    <BridgeSo>$(BridgeDir)/target/release/libskua_flash.so</BridgeSo>
+    <!-- Default: the offline, dependency-free mock runtime (any stable Rust).
+         Release builds that must run the real game pass -p:SkuaRuffle=true (or
+         set SKUA_RUFFLE=1) to embed real ruffle_core — that needs a nightly
+         toolchain and network for the git-only ruffle_core dependency. -->
+    <SkuaRuffle Condition="'$(SkuaRuffle)' == '' and '$(SKUA_RUFFLE)' != ''">true</SkuaRuffle>
+    <CargoCommand Condition="'$(SkuaRuffle)' == 'true'">cargo +nightly build --release --features ruffle-render</CargoCommand>
+    <CargoCommand Condition="'$(CargoCommand)' == ''">cargo build --release</CargoCommand>
+  </PropertyGroup>
+
+  <Target Name="BuildFlashBridge" BeforeTargets="AssignTargetPaths">
+    <!-- The real runtime builds against a ruffle_core patched with one method
+         (Player::inject_swf_same_domain). Prepare that fork before cargo runs. -->
+    <Exec Condition="'$(SkuaRuffle)' == 'true'"
+          Command="bash prepare-ruffle-fork.sh"
+          WorkingDirectory="$(MSBuildProjectDirectory)/../native" />
+    <Message Importance="high" Text="Building Rust flash bridge ($(CargoCommand))..." />
+    <Exec Command="$(CargoCommand)" WorkingDirectory="$(BridgeDir)" />
+    <ItemGroup>
+      <None Include="$(BridgeSo)" Condition="Exists('$(BridgeSo)')">
+        <Link>libskua_flash.so</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+  </Target>
+
+</Project>

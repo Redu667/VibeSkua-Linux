@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="260"
+             x:Class="Skua.Avalonia.Views.FastTravelEditorView"
+             x:DataType="vm:FastTravelEditorViewModel">
+
+    <StackPanel Margin="20" Spacing="10" MinWidth="280">
+        <TextBlock Text="Edit fast travel" FontWeight="Bold" />
+        <TextBox Watermark="Name" Text="{Binding Travel.DescriptionName}" />
+        <TextBox Watermark="Map" Text="{Binding Travel.MapName}" />
+        <TextBox Watermark="Cell" Text="{Binding Travel.Cell}" />
+        <TextBox Watermark="Pad" Text="{Binding Travel.Pad}" />
+        <Button Content="Get current location" Command="{Binding GetCurrentCommand}"
+                HorizontalAlignment="Left" />
+    </StackPanel>
+
+</UserControl>
