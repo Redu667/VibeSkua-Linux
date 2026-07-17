@@ -15,7 +15,13 @@
             <Button Content="Primary FG" Command="{Binding ChangeToPrimaryForegroundCommand}" />
             <Button Content="Secondary FG" Command="{Binding ChangeToSecondaryForegroundCommand}" />
         </StackPanel>
-        <Button Content="Change custom hue" Command="{Binding ChangeCustomHueCommand}" HorizontalAlignment="Left" />
+        <TextBlock Text="Accent color (hex, e.g. #FF607D8B)" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox x:Name="HueBox" Width="160" Watermark="#FF607D8B" />
+            <Button Content="Apply accent"
+                    Command="{Binding ChangeCustomHueCommand}"
+                    CommandParameter="{Binding #HueBox.Text}" />
+        </StackPanel>
     </StackPanel>
 
 </UserControl>
