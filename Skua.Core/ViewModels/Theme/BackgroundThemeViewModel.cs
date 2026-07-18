@@ -77,7 +77,15 @@ public class BackgroundThemeViewModel : ObservableObject
     {
         try
         {
-            System.Diagnostics.Process.Start("explorer.exe", ClientFileSources.SkuaThemesDIR);
+            Directory.CreateDirectory(ClientFileSources.SkuaThemesDIR);
+            // Open the folder in the platform file manager. explorer.exe is
+            // Windows-only; on Linux use xdg-open, on macOS `open`.
+            (string cmd, string args) = OperatingSystem.IsWindows()
+                ? ("explorer.exe", ClientFileSources.SkuaThemesDIR)
+                : OperatingSystem.IsMacOS()
+                    ? ("open", ClientFileSources.SkuaThemesDIR)
+                    : ("xdg-open", ClientFileSources.SkuaThemesDIR);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(cmd, args) { UseShellExecute = false });
         }
         catch (Exception)
         {
