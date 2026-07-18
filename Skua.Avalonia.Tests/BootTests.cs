@@ -68,7 +68,8 @@ public class BootTests
             Ioc.Default.GetRequiredService<ApplicationOptionsViewModel>(),
             Ioc.Default.GetRequiredService<CoreBotsViewModel>(),
             Ioc.Default.GetRequiredService<ScriptLoaderViewModel>(),
-            Ioc.Default.GetRequiredService<JunkItemsViewModel>());
+            Ioc.Default.GetRequiredService<JunkItemsViewModel>(),
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ManagerMainViewModel>());
     }
 
     [AvaloniaFact]

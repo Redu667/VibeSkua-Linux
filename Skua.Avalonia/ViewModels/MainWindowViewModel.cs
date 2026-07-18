@@ -74,7 +74,8 @@ public partial class MainWindowViewModel : ObservableObject
         ApplicationOptionsViewModel appOptions,
         CoreBotsViewModel coreBots,
         ScriptLoaderViewModel scriptLoader,
-        JunkItemsViewModel junkItems)
+        JunkItemsViewModel junkItems,
+        Skua.Core.ViewModels.Manager.ManagerMainViewModel managerMain)
     {
         // ViewModels resolved through DI (Ioc.Default), mirroring Skua.App.WPF.
         // Order preserved (tests index into this list); NavScope tags which
@@ -122,6 +123,11 @@ public partial class MainWindowViewModel : ObservableObject
             // The in-window AQW game surface (Ruffle). Self-contained — its View
             // owns the native renderer, so no DI dependency is threaded here.
             new("Game", new GameViewModel(), NavScope.Client),
+            // The Skua.Manager surface (Windows ships it as a separate exe):
+            // Accounts (add/save accounts, groups, server select, per-account
+            // auto-login + start = the army setup), Launcher, Updater, Scripts,
+            // Options, Themes. Appended last so position-indexed tests hold.
+            new("Accounts / Army", managerMain, NavScope.Manager),
         };
         Selected = Items[0];
     }
