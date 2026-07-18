@@ -11,6 +11,12 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Per-launch log routing FIRST (before anything logs or the native
+        // bridge loads): each launch gets its own timestamped log set under
+        // ~/.config/Skua/logs/, and the paths are published as env vars the
+        // native bridge honors. Must run before BuildAvaloniaApp/native init.
+        Services.SessionLog.Init(args, DateTime.Now);
+
         // Never let the app vanish silently: log unhandled exceptions to a file
         // (and stderr) so failures are diagnosable without a terminal. Unobserved
         // task exceptions are marked observed so a stray background failure — e.g.
@@ -52,6 +58,15 @@ internal static class Program
     {
         if (ex is null)
             return;
+
+        // Filter the benign Avalonia/Tmds.DBus shutdown race: on exit the D-Bus
+        // connection (tray / desktop portal) disposes and posts to an
+        // already-closing dispatcher, throwing TaskCanceledException on a
+        // background thread. It's harmless and was flooding the crash log with
+        // identical stacks — drop it.
+        if (ex is System.Threading.Tasks.TaskCanceledException && ex.ToString().Contains("Tmds.DBus"))
+            return;
+
         string line = $"[{source}] {ex}";
         try
         {
@@ -62,14 +77,16 @@ internal static class Program
         }
         try
         {
-            string dir = System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
-            System.IO.Directory.CreateDirectory(dir);
+            // This launch's crash log under logs/ (set by SessionLog.Init);
+            // falls back to the legacy single file if init didn't run.
+            string path = Services.SessionLog.CrashLogPath
+                ?? System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua", "vibeskua-crash.log");
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
             lock (_logLock)
             {
                 System.IO.File.AppendAllText(
-                    System.IO.Path.Combine(dir, "vibeskua-crash.log"),
-                    $"{System.DateTime.UtcNow:o} {line}{Environment.NewLine}");
+                    path, $"{System.DateTime.UtcNow:o} {line}{Environment.NewLine}");
             }
         }
         catch

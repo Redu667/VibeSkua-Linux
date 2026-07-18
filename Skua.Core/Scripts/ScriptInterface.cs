@@ -528,11 +528,20 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 break;
 
             case "pext":
-                dynamic packet = JsonConvert.DeserializeObject<dynamic>((string)args[0])!;
-                string type = packet["params"].type;
-                dynamic data = packet["params"].dataObj;
-                if (type is not null and "json")
+                // Classify the server packet into game events, but NEVER let a
+                // parse error abort the handler: the final ExtensionPacketMessage
+                // broadcast below is what shop/bank/drop waits subscribe to, so
+                // one unexpected packet shape throwing here used to silently
+                // break those operations ("buying fails often"). Forward the
+                // packet regardless; just log the classification failure.
+                dynamic? packet = null;
+                try
                 {
+                    packet = JsonConvert.DeserializeObject<dynamic>((string)args[0])!;
+                    string type = packet["params"]?.type;
+                    dynamic data = packet["params"]?.dataObj;
+                    if (type is not null and "json" && data is not null)
+                    {
                     string cmd = data.cmd;
                     switch (cmd)
                     {
@@ -690,12 +699,24 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             Messenger.Send<LoginMessage, int>(new(Convert.ToString(data[4])), (int)MessageChannels.GameEvents);
                             break;
                     }
+                    }
                 }
-                Messenger.Send<ExtensionPacketMessage, int>(new(packet), (int)MessageChannels.GameEvents);
+                catch (Exception ex)
+                {
+                    Log($"pext classification error (packet still forwarded): {ex.Message}");
+                }
+                if (packet is not null)
+                    Messenger.Send<ExtensionPacketMessage, int>(new(packet), (int)MessageChannels.GameEvents);
                 break;
 
             case "packet":
+                // Same contract as pext: classify into events, but always
+                // forward the raw PacketMessage (which packet-waiting logic
+                // subscribes to) even if classification throws.
+                try
+                {
                 string[] parts = ((string)args[0]).Split('%', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length > 2)
                 switch (parts[2])
                 {
                     case "moveToCell":
@@ -719,6 +740,11 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             _ = OnLogout();
                         }
                         break;
+                }
+                }
+                catch (Exception ex)
+                {
+                    Log($"packet classification error (packet still forwarded): {ex.Message}");
                 }
                 Messenger.Send<PacketMessage, int>(new((string)args[0]), (int)MessageChannels.GameEvents);
                 break;

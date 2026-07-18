@@ -152,13 +152,14 @@ public sealed class RuffleFlashUtil : IFlashUtil
         Console.Error.WriteLine($"[skua-flash] {message}");
         try
         {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
-            Directory.CreateDirectory(dir);
+            // This launch's client log (set by SessionLog.Init via env), else
+            // the legacy single file when hosted without it (console/tests).
+            string path = Environment.GetEnvironmentVariable("SKUA_CLIENT_LOG")
+                ?? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua", "vibeskua-client.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            File.AppendAllText(
-                Path.Combine(dir, "vibeskua-client.log"),
-                $"[{ts} {Environment.ProcessId}] {message}\n");
+            File.AppendAllText(path, $"[{ts} {Environment.ProcessId}] {message}\n");
         }
         catch { /* logging must never throw */ }
     }
