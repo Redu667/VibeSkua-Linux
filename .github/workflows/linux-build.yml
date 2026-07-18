@@ -84,6 +84,13 @@ jobs:
         working-directory: native/skua-flash-bridge
         run: cargo build --release --features ruffle
 
+      # The release builds --features ruffle-render (the live-game render path,
+      # src/render.rs), which --features ruffle does NOT compile. Type-check it
+      # here so a render.rs error can't pass PR CI and only surface at release.
+      - name: Compile-check the render feature (what releases build)
+        working-directory: native/skua-flash-bridge
+        run: cargo check --release --features ruffle-render
+
       - name: Round-trip ExternalInterface through real ruffle_core
         working-directory: native/skua-flash-bridge
         run: cargo test --features ruffle --test ruffle_roundtrip

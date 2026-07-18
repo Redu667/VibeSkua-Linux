@@ -218,14 +218,14 @@ impl RenderPlayer {
         // spammed by the legitimate "does this path exist?" null checks.
         if matches!(
             flash_result,
-            crate::value::Value::Null | crate::value::Value::Undefined
+            crate::value::FlashValue::Null | crate::value::FlashValue::Undefined
         ) && matches!(
             name.as_str(),
             "getGameObject" | "getGameObjectS" | "getGameObjectKey" | "getArrayObject" | "selectArrayObjects"
         ) && std::env::var("SKUA_TRACE_GETOBJ").is_ok()
         {
             let path = match args.first() {
-                Some(crate::value::Value::String(s)) => s.clone(),
+                Some(crate::value::FlashValue::String(s)) => s.clone(),
                 other => format!("{other:?}"),
             };
             crate::navigator::game_log(&format!("read returned empty: {name}({path})"));
