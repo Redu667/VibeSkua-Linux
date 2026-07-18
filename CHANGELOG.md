@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.4
+
+- **Logs no longer pile up forever.** Each launch now writes its own
+  timestamped log files into a `logs/` folder (under `~/.config/Skua/`),
+  named by role, account, date and time — one set per manager launch and per
+  client launch — instead of every run appending to the same handful of files
+  that grew to hundreds of thousands of lines. Logs older than 14 days are
+  cleaned up automatically.
+- **Fewer shop/bank failures.** A server packet with an unexpected shape could
+  throw during parsing and cause the bot to drop that packet entirely, which
+  made buying and bank actions time out and fail. The packet is now always
+  forwarded even if parsing hiccups, and the specific failure is logged (in the
+  new per-session log) so any remaining cases are diagnosable.
+- Stopped a harmless shutdown error from flooding the crash log.
+
 ## v1.1.3
 
 - **Accounts and themes now survive a restart.** They were being written to
