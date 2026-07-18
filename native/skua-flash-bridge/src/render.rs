@@ -141,6 +141,14 @@ impl RenderPlayer {
             .with_player_version(Some(9))
             .build();
 
+        // Register a fallback device font so the game UI text renders. Without
+        // this ruffle_core has no `_sans`/`_serif` device font and no fallback
+        // for the named fonts AQW uses (HelveticaNeue, Calibri, Times New
+        // Roman), which floods the log with "text will be missing" and leaves
+        // labels blank. We don't bundle a font in the .so; we point at a system
+        // TTF (the AppImage runs on a real desktop that has one).
+        install_fallback_fonts(&player);
+
         {
             let mut p = player.lock().map_err(|_| "player mutex poisoned".to_owned())?;
             let mut limit = ExecutionLimit::none();
@@ -555,6 +563,99 @@ impl Drop for RenderHost {
             let _ = worker.join();
         }
     }
+}
+
+/// Read the first available system sans-serif TTF and register it as ruffle's
+/// device font + Sans/Serif/Typewriter defaults, so AQW's UI text renders
+/// instead of coming back blank ("text will be missing"). Best-effort: if no
+/// system font is found the game still runs, just with missing UI text.
+fn install_fallback_fonts(player: &Arc<Mutex<Player>>) {
+    use ruffle_core::backend::ui::FontDefinition;
+    use ruffle_core::font::{DefaultFont, FontFileData};
+
+    let Some((name, data)) = load_system_font() else {
+        crate::navigator::game_log(
+            "no system fallback font found (install e.g. noto-fonts or ttf-dejavu); game UI text may be blank",
+        );
+        return;
+    };
+
+    let Ok(mut p) = player.lock() else { return };
+    p.register_device_font(FontDefinition::FontFile {
+        name: name.clone(),
+        is_bold: false,
+        is_italic: false,
+        data: FontFileData::new(data),
+        index: 0,
+    });
+    for kind in [DefaultFont::Sans, DefaultFont::Serif, DefaultFont::Typewriter] {
+        p.set_default_font(kind, vec![name.clone()]);
+    }
+    drop(p);
+    crate::navigator::game_log(&format!("registered fallback font: {name}"));
+}
+
+/// Locate a system sans-serif TTF. Tries common Arch/CachyOS/Debian/Fedora
+/// paths, then falls back to a shallow scan of the font dirs.
+fn load_system_font() -> Option<(String, Vec<u8>)> {
+    const CANDIDATES: &[(&str, &str)] = &[
+        ("Noto Sans", "/usr/share/fonts/noto/NotoSans-Regular.ttf"),
+        ("Noto Sans", "/usr/share/fonts/google-noto/NotoSans-Regular.ttf"),
+        ("Noto Sans", "/usr/share/fonts/noto-fonts/NotoSans-Regular.ttf"),
+        ("Noto Sans", "/usr/share/fonts/TTF/NotoSans-Regular.ttf"),
+        ("DejaVu Sans", "/usr/share/fonts/TTF/DejaVuSans.ttf"),
+        ("DejaVu Sans", "/usr/share/fonts/dejavu/DejaVuSans.ttf"),
+        ("DejaVu Sans", "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf"),
+        ("DejaVu Sans", "/usr/share/fonts/dejavu-fonts/DejaVuSans.ttf"),
+        ("Liberation Sans", "/usr/share/fonts/liberation/LiberationSans-Regular.ttf"),
+        ("Liberation Sans", "/usr/share/fonts/liberation-fonts/LiberationSans-Regular.ttf"),
+        ("Liberation Sans", "/usr/share/fonts/TTF/LiberationSans-Regular.ttf"),
+    ];
+    for (name, path) in CANDIDATES {
+        if let Ok(data) = std::fs::read(path) {
+            return Some(((*name).to_owned(), data));
+        }
+    }
+
+    // Fallback: shallow scan for any *Sans*.ttf / *sans*.ttf under the usual dirs.
+    for root in ["/usr/share/fonts", "/usr/local/share/fonts"] {
+        if let Some(found) = scan_for_sans_ttf(std::path::Path::new(root), 0) {
+            if let Ok(data) = std::fs::read(&found) {
+                let name = found
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Fallback Sans")
+                    .to_owned();
+                return Some((name, data));
+            }
+        }
+    }
+    None
+}
+
+fn scan_for_sans_ttf(dir: &std::path::Path, depth: u32) -> Option<std::path::PathBuf> {
+    if depth > 4 {
+        return None;
+    }
+    let entries = std::fs::read_dir(dir).ok()?;
+    let mut subdirs = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            subdirs.push(path);
+        } else if let Some(fname) = path.file_name().and_then(|s| s.to_str()) {
+            let lower = fname.to_ascii_lowercase();
+            if lower.ends_with(".ttf") && lower.contains("sans") && !lower.contains("mono") {
+                return Some(path);
+            }
+        }
+    }
+    for sub in subdirs {
+        if let Some(found) = scan_for_sans_ttf(&sub, depth + 1) {
+            return Some(found);
+        }
+    }
+    None
 }
 
 /// Install a `tracing` subscriber (once per process) that appends WARN+ events
