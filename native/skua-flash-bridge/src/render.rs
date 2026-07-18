@@ -209,7 +209,28 @@ impl RenderPlayer {
             };
             p.call_internal_interface(&name, ruffle_args)
         };
-        serialize_response(&from_ruffle(&result))
+        let flash_result = from_ruffle(&result);
+        // Opt-in diagnostics (SKUA_TRACE_GETOBJ=1): record read calls that came
+        // back empty (null/undefined), WITH the requested path. This is what
+        // pinpoints inventory/bank read failures — skua.swf's getGameObject
+        // throwing #1009 in Ruffle returns null here, so a script sees an empty
+        // inventory and re-does completed steps. Gated so normal runs aren't
+        // spammed by the legitimate "does this path exist?" null checks.
+        if matches!(
+            flash_result,
+            crate::value::Value::Null | crate::value::Value::Undefined
+        ) && matches!(
+            name.as_str(),
+            "getGameObject" | "getGameObjectS" | "getGameObjectKey" | "getArrayObject" | "selectArrayObjects"
+        ) && std::env::var("SKUA_TRACE_GETOBJ").is_ok()
+        {
+            let path = match args.first() {
+                Some(crate::value::Value::String(s)) => s.clone(),
+                other => format!("{other:?}"),
+            };
+            crate::navigator::game_log(&format!("read returned empty: {name}({path})"));
+        }
+        serialize_response(&flash_result)
     }
 
     pub fn player(&self) -> &Arc<Mutex<Player>> {

@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.5
+
+- **In-app update works now.** The updater was checking the wrong repository
+  (the Windows project) so it never found Linux releases. It now checks the
+  correct release repo. If that repo is private, enter a GitHub token in the
+  GitHub Auth tab and the updater will use it; otherwise make the repo public.
+- **Minimize to tray is less finicky.** Clicking the tray icon (or the new
+  Show / Hide menu entries) now properly restores a minimized window instead of
+  hiding it further. Note: single-click on the tray icon isn't delivered by
+  every desktop environment (e.g. GNOME needs an extension) — the Show/Hide
+  menu always works.
+- **Troubleshooting:** launching with `SKUA_TRACE_GETOBJ=1` logs every game
+  read that comes back empty (with its path) to the game log — for diagnosing
+  scripts that don't detect inventory/quest state.
+
 ## v1.1.4
 
 - **Logs no longer pile up forever.** Each launch now writes its own
