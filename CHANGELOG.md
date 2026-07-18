@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.6
+
+- **Game UI text renders instead of showing blank labels.** Ruffle has no
+  built-in fonts, so the fonts AQW asks for (HelveticaNeue, Calibri, Times New
+  Roman, and the generic `_sans`/`_serif`) had nothing to fall back to — the
+  game log filled with hundreds of "text will be missing" warnings and buttons
+  and labels came up empty. The client now registers a system font from your
+  machine (Noto / DejaVu / Liberation, covering CachyOS/Arch, Debian, and
+  Fedora paths, with a scan of the font folders as a fallback) as the default,
+  so game text draws. If no system font is found the game still runs and logs a
+  hint to install `noto-fonts` or `ttf-dejavu`.
+
 ## v1.1.5
 
 - **In-app update works now.** The updater was checking the wrong repository
