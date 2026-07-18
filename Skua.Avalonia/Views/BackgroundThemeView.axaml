@@ -3,15 +3,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
-             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="180"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="260"
              x:Class="Skua.Avalonia.Views.BackgroundThemeView"
              x:DataType="vm:BackgroundThemeViewModel">
 
-    <StackPanel Margin="24" Spacing="12" HorizontalAlignment="Left">
-        <TextBlock Text="Background" FontSize="16" FontWeight="Bold" />
+    <StackPanel Margin="24" Spacing="12" HorizontalAlignment="Left" MinWidth="340">
+        <TextBlock Text="Game background" FontSize="16" FontWeight="Bold" />
+        <TextBlock Text="Sets the SWF art behind the game. Applies the next time the game loads."
+                   Opacity="0.7" TextWrapping="Wrap" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox MinWidth="200"
+                      ItemsSource="{Binding AvailableBackgrounds}"
+                      SelectedItem="{Binding SelectedBackground, Mode=TwoWay}" />
+            <Button Content="Refresh" Command="{Binding RefreshBackgroundsCommand}" />
+        </StackPanel>
+
         <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Content="Browse…" Command="{Binding BrowseBackgroundCommand}" />
             <Button Content="Open themes folder" Command="{Binding OpenThemesFolderCommand}" />
+            <Button Content="Get backgrounds" Command="{Binding GetBackgroundsCommand}" />
         </StackPanel>
     </StackPanel>
 
