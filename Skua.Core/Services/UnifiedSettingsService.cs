@@ -132,21 +132,27 @@ public class UnifiedSettingsService
         {
             try
             {
+                // Shared first, then the current role's section, then the other
+                // section. The cross-section fallback matters on Linux, where
+                // one binary is both the manager and the bot client: without it
+                // a manager-section key written under the Client role (e.g.
+                // ManagedAccounts) was silently dropped and lost on restart.
                 PropertyInfo? sharedProp = FindPropertyByJsonName(_root.Shared.GetType(), key);
+                PropertyInfo? clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
+                PropertyInfo? managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
+
                 if (sharedProp != null)
-                {
                     sharedProp.SetValue(_root.Shared, value);
-                }
-                else if (_currentRole == AppRole.Client)
-                {
-                    PropertyInfo? clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
-                    clientProp?.SetValue(_root.Client, value);
-                }
-                else if (_currentRole == AppRole.Manager)
-                {
-                    PropertyInfo? managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
-                    managerProp?.SetValue(_root.Manager, value);
-                }
+                else if (_currentRole == AppRole.Client && clientProp != null)
+                    clientProp.SetValue(_root.Client, value);
+                else if (_currentRole == AppRole.Manager && managerProp != null)
+                    managerProp.SetValue(_root.Manager, value);
+                else if (clientProp != null)
+                    clientProp.SetValue(_root.Client, value);
+                else if (managerProp != null)
+                    managerProp.SetValue(_root.Manager, value);
+                else
+                    Console.Error.WriteLine($"settings: no property backs key '{key}' — value not persisted");
 
                 SaveSettings();
             }

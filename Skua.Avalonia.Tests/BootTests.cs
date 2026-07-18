@@ -77,6 +77,27 @@ public class BootTests
     private static NavItem Nav(MainWindowViewModel shell, string title)
         => shell.Items.First(i => i.Title == title);
 
+    /// <summary>
+    /// Pump the dispatcher + layout until <typeparamref name="TView"/> appears
+    /// in the window, or the attempt budget runs out. Realizing an item
+    /// container inside a nested ItemsControl can take several measure/arrange
+    /// cycles that a single RunJobs() doesn't guarantee in the headless harness;
+    /// this makes such assertions deterministic instead of timing-dependent.
+    /// </summary>
+    private static TView? WaitForView<TView>(global::Avalonia.Controls.Window window, int attempts = 20)
+        where TView : class
+    {
+        for (int i = 0; i < attempts; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            TView? view = window.GetVisualDescendants().OfType<TView>().FirstOrDefault();
+            if (view is not null)
+                return view;
+        }
+        return null;
+    }
+
     [AvaloniaFact]
     public void MainWindowViewModel_resolves_from_the_container()
     {
@@ -180,8 +201,9 @@ public class BootTests
 
         // The form resolved...
         Assert.NotNull(window.GetVisualDescendants().OfType<SkillRulesView>().FirstOrDefault());
-        // ...and the nested ItemsControl rendered the AuraCheckViewModel via the ViewLocator.
-        Assert.NotNull(window.GetVisualDescendants().OfType<AuraCheckView>().FirstOrDefault());
+        // ...and the nested ItemsControl rendered the AuraCheckViewModel via the
+        // ViewLocator (pumped until realized, so this isn't timing-dependent).
+        Assert.NotNull(WaitForView<AuraCheckView>(window));
     }
 
     [AvaloniaFact]

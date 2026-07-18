@@ -148,6 +148,16 @@ public class SharedSettings
     [JsonPropertyName("CurrentTheme")]
     public string CurrentTheme { get; set; } = "Skua,Dark,#FF607D8B,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All";
 
+    // Linux (Avalonia/Fluent) themes use a different model than the WPF
+    // MaterialDesign ThemeItem strings above, so they persist under their own
+    // keys. Settings keys only persist if a property exists here — see
+    // UnifiedSettingsService.Set.
+    [JsonPropertyName("LinuxUserThemes")]
+    public StringCollection LinuxUserThemes { get; set; } = new();
+
+    [JsonPropertyName("LinuxCurrentTheme")]
+    public string LinuxCurrentTheme { get; set; } = string.Empty;
+
     [JsonPropertyName("UserGitHubToken")]
     public string UserGitHubToken { get; set; } = string.Empty;
 
