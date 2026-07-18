@@ -17,7 +17,13 @@ public sealed class SettingsService : ISettingsService
     public SettingsService()
     {
         _unifiedService = new UnifiedSettingsService();
-        _unifiedService.Initialize(AppRole.Client);
+        // One binary plays both Windows roles: --client windows are the bot
+        // client (Skua.exe), the default window is the manager (Skua.Manager.exe).
+        // The role picks which non-shared settings section receives writes.
+        bool clientMode = Array.Exists(
+            Environment.GetCommandLineArgs(),
+            a => string.Equals(a, "--client", StringComparison.OrdinalIgnoreCase));
+        _unifiedService.Initialize(clientMode ? AppRole.Client : AppRole.Manager);
     }
 
     public T? Get<T>(string key) => _unifiedService.Get<T>(key);

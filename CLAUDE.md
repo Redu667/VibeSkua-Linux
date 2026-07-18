@@ -214,6 +214,17 @@ Wiring fixes (things built but not reachable — from a full nav audit):
 - **Hotkeys** rescoped to Both (army hotkeys are a manager concern).
 - Shell nav tests are now title-based (`Nav(shell, "…")`), not position-indexed.
 
+Settings persistence (fixed 2026-07-18): `UnifiedSettingsService.Set` only
+persists keys backed by a property on SharedSettings/ClientSettings/
+ManagerSettings — unknown keys were SILENTLY DROPPED. Two consequences on
+Linux: accounts vanished on restart (ManagedAccounts is a Manager-section key
+but the app always initialized as AppRole.Client), and themes vanished
+(LinuxUserThemes/LinuxCurrentTheme had no backing property). Fixes: Set now
+falls back across sections (+ logs unknown keys instead of dropping), the
+Linux role follows `--client` (client) vs manager window (manager), and the
+Linux theme keys exist on SharedSettings. When adding a NEW settings key,
+ALWAYS add a property to SettingsModels.cs. Tests: SettingsPersistenceTests.
+
 Known remaining gaps (small):
 - Minor: `Console.Beep(freq,duration)` downgrades to plain beep; clipboard
   custom formats collapse to text; no single-instance guard; no periodic
