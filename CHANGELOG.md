@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.3
+
+- **Accounts and themes now survive a restart.** They were being written to
+  the wrong place and silently discarded, so they vanished when you relaunched
+  the AppImage. Fixed — they persist now. (One-time note: anything you added
+  before this update wasn't saved to disk, so you'll need to re-add your
+  accounts and theme once; they'll stick from here on.)
+
 ## v1.1.2
 
 Fixes for features that were built but not reachable from the UI.
