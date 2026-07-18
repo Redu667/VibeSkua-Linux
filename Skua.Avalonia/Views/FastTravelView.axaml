@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
-             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+             mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="440"
              x:Class="Skua.Avalonia.Views.FastTravelView"
              x:DataType="vm:FastTravelViewModel">
 
-    <DockPanel Margin="24" LastChildFill="True">
+    <DockPanel Margin="16" LastChildFill="True">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
             <TextBlock Text="Fast Travel" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
             <Button Content="Add" Command="{Binding AddFastTravelCommand}" />
@@ -15,11 +15,18 @@
             <Button Content="Clear" Command="{Binding ClearFastTravelsCommand}" />
         </StackPanel>
 
+        <!-- The editor row: fill these (or "Get current location") then Add.
+             Without it hosted, Add read empty fields and silently did nothing. -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,10" Padding="8"
+                BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+            <ContentControl Content="{Binding Editor}" />
+        </Border>
+
         <ListBox ItemsSource="{Binding FastTravelItems}" SelectedIndex="{Binding SelectedIndex}">
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FastTravelItemViewModel">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel>
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                        <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{Binding DescriptionName}" FontWeight="SemiBold" />
                             <TextBlock Foreground="#A6ADC8">
                                 <Run Text="{Binding MapName}" />
@@ -29,8 +36,12 @@
                                 <Run Text="{Binding Pad}" />
                             </TextBlock>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="Travel"
+                        <Button Grid.Column="1" Content="Travel" Margin="4,0,0,0"
                                 Command="{Binding TravelCommand}" CommandParameter="{Binding}" />
+                        <Button Grid.Column="2" Content="Edit" Margin="4,0,0,0"
+                                Command="{Binding EditCommand}" />
+                        <Button Grid.Column="3" Content="Remove" Margin="4,0,0,0"
+                                Command="{Binding RemoveCommand}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

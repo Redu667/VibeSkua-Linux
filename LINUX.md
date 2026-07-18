@@ -150,10 +150,10 @@ The bot runs as an **army of independent client windows**, matching the Windows
 manager→clients model without a second binary:
 
 - **`--client` mode.** Launched with `--client` (plus optional `--instance <name>`
-  / `--account <name>`), the app opens a standalone `GameClientWindow` — a single
-  `GameView` on its own live Ruffle player, no manager chrome — and auto-starts
-  the game. The instance name shows in the window title/status so army members
-  are distinguishable.
+  / `--account <name>`), the app opens the main window scoped to a bot client
+  (`ApplyScope(client:true)` drops the manager/army tabs), opening on the Game
+  tab with the game auto-started on its own live Ruffle player. The instance
+  name shows in the window title so army members are distinguishable.
 - **`IClientLauncher` seam** (`Skua.Core.Interfaces`). The Linux `ClientLauncher`
   relaunches **this** executable (prefers `$APPIMAGE`, else `Environment.ProcessPath`)
   with `--client`. `LauncherViewModel.LaunchSkua` and `AccountManagerViewModel`'s

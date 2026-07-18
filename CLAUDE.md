@@ -194,6 +194,26 @@ Done in the parity pass (each mirrors the WPF behavior):
   MaterialDesign primary/secondary split intentionally collapses to it.
   Tests: `ThemeServiceTests`.
 
+Wiring fixes (things built but not reachable — from a full nav audit):
+- **Script options dialog**: `OptionContainerView` was missing entirely, so
+  every configurable script (`OptionContainer.Configure()` →
+  `ShowDialog<OptionContainerViewModel>`) hit the ViewLocator "View not found"
+  fallback and errored on start. Ported (checkbox/combo/text editor per option
+  type, + `IsBoolean`/`IsEnum`/`IsText`/`BoolValue`/`TextValue` helpers on the
+  item VM). Tests: `OptionDialogTests`.
+- **Account Manager / army setup**: `AccountManagerViewModel` (+ Launcher,
+  Updates, Script Updater, Manager Options, Client Files) are now flat
+  manager-scoped sidebar items — this is where you add accounts/groups and
+  start each with auto-login. They were DI-registered but no NavItem pointed
+  at them.
+- **Fast Travel**: the editor row is now hosted (`{Binding Editor}`) and items
+  have Edit/Remove buttons — Add/Edit/Remove were dead because the editor UI
+  was never shown.
+- **De-duplicated nav**: removed the redundant standalone "Theme" tab (it's a
+  sub-panel of "Themes") and "Skill Editor" tab (embedded in "Advanced Skills").
+- **Hotkeys** rescoped to Both (army hotkeys are a manager concern).
+- Shell nav tests are now title-based (`Nav(shell, "…")`), not position-indexed.
+
 Known remaining gaps (small):
 - Minor: `Console.Beep(freq,duration)` downgrades to plain beep; clipboard
   custom formats collapse to text; no single-instance guard; no periodic

@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+             mc:Ignorable="d" d:DesignWidth="460" d:DesignHeight="480"
+             x:Class="Skua.Avalonia.Views.OptionContainerView"
+             x:DataType="vm:OptionContainerViewModel">
+
+    <!-- Script options dialog (the Linux twin of WPF's OptionContainerUserControl):
+         one row per option, editor chosen by type — checkbox for bool, combo for
+         enums, text box otherwise. Shown modally via ShowDialog<OptionContainerViewModel>;
+         values write back through the item VMs and SaveOptions persists on close. -->
+    <DockPanel MinWidth="420" MaxHeight="560">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
+                    HorizontalAlignment="Right" Margin="12">
+            <Button Content="Save" MinWidth="80" IsDefault="True" Click="Save_Click" />
+            <Button Content="Cancel" MinWidth="80" IsCancel="True" Click="Cancel_Click" />
+        </StackPanel>
+
+        <Border DockPanel.Dock="Bottom" Margin="12,0,12,0" Padding="8"
+                BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                IsVisible="{Binding SelectedOption, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Spacing="2">
+                <TextBlock FontWeight="Bold" Text="{Binding SelectedOption.Option.DisplayName}" />
+                <TextBlock TextWrapping="Wrap" Text="{Binding SelectedOption.Option.Description}" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Margin="12,12,12,8" HorizontalScrollBarVisibility="Disabled">
+            <ListBox ItemsSource="{Binding Options}" SelectedItem="{Binding SelectedOption}"
+                     Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OptionContainerItemViewModel">
+                        <Grid ColumnDefinitions="*,200" Margin="0,2">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                       Text="{Binding Option.DisplayName}" TextWrapping="Wrap" />
+                            <!-- Type-selected editor: exactly one is visible. -->
+                            <CheckBox Grid.Column="1" IsVisible="{Binding IsBoolean}"
+                                      IsChecked="{Binding BoolValue, Mode=TwoWay}" />
+                            <ComboBox Grid.Column="1" IsVisible="{Binding IsEnum}"
+                                      HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding EnumValues}"
+                                      SelectedItem="{Binding SelectedValue, Mode=TwoWay}" />
+                            <TextBox Grid.Column="1" IsVisible="{Binding IsText}"
+                                     Text="{Binding TextValue, Mode=TwoWay}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+    </DockPanel>
+
+</UserControl>

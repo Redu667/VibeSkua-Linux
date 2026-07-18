@@ -38,6 +38,27 @@ public partial class OptionContainerItemViewModel : ObservableObject
     public Type Type { get; }
     public string Category { get; }
 
+    // Editor selectors + typed accessors for framework-agnostic views (the
+    // Avalonia option dialog binds these; WPF uses its template selector and
+    // ignores them). Type is bool, an enum, or otherwise treated as text.
+    public bool IsBoolean => Type == typeof(bool);
+    public bool IsEnum => Type.IsEnum;
+    public bool IsText => !IsBoolean && !IsEnum;
+
+    /// <summary>Two-way bool accessor over <see cref="Value"/> for checkbox binding.</summary>
+    public bool BoolValue
+    {
+        get => Value is bool b ? b : (Value?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false);
+        set => Value = value;
+    }
+
+    /// <summary>Two-way string accessor over <see cref="Value"/> for text binding.</summary>
+    public string TextValue
+    {
+        get => Value?.ToString() ?? string.Empty;
+        set => Value = value;
+    }
+
     private object GetValue()
     {
         object value = typeof(OptionContainer).GetMethod("Get", new Type[] { typeof(IOption) })?

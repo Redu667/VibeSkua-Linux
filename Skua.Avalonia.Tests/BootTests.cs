@@ -37,7 +37,6 @@ public class BootTests
                 new Skua.Avalonia.Services.ClipboardService(),
                 new Skua.Avalonia.Services.ProcessService(),
                 new Skua.Avalonia.Services.SettingsService()),
-            new AdvancedSkillEditorViewModel(new Skua.Avalonia.Services.DialogService()),
             new NotifyDropViewModel(new Skua.Avalonia.Services.SoundService()),
             // Game-bound VMs resolved from the app's hosted engine graph.
             Ioc.Default.GetRequiredService<ScriptStatsViewModel>(),
@@ -55,7 +54,6 @@ public class BootTests
             Ioc.Default.GetRequiredService<ScriptRepoViewModel>(),
             Ioc.Default.GetRequiredService<RuntimeHelpersViewModel>(),
             Ioc.Default.GetRequiredService<AdvancedSkillsViewModel>(),
-            Ioc.Default.GetRequiredService<ThemeSettingsViewModel>(),
             Ioc.Default.GetRequiredService<ApplicationThemesViewModel>(),
             Ioc.Default.GetRequiredService<HotKeysViewModel>(),
             Ioc.Default.GetRequiredService<PacketLoggerViewModel>(),
@@ -69,8 +67,15 @@ public class BootTests
             Ioc.Default.GetRequiredService<CoreBotsViewModel>(),
             Ioc.Default.GetRequiredService<ScriptLoaderViewModel>(),
             Ioc.Default.GetRequiredService<JunkItemsViewModel>(),
-            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ManagerMainViewModel>());
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.AccountManagerViewModel>(),
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ScriptUpdaterViewModel>(),
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ManagerOptionsViewModel>(),
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ClientUpdatesViewModel>());
     }
+
+    /// <summary>Select a nav item by title (robust to reordering).</summary>
+    private static NavItem Nav(MainWindowViewModel shell, string title)
+        => shell.Items.First(i => i.Title == title);
 
     [AvaloniaFact]
     public void MainWindowViewModel_resolves_from_the_container()
@@ -138,7 +143,7 @@ public class BootTests
         Assert.NotNull(window.GetVisualDescendants().OfType<AboutView>().FirstOrDefault());
 
         // Navigate to the second item; the ViewLocator should swap in ChangeLogsView.
-        shell.Selected = shell.Items[1];
+        shell.Selected = Nav(shell, "Change Logs");
         Dispatcher.UIThread.RunJobs();
 
         Assert.NotNull(window.GetVisualDescendants().OfType<ChangeLogsView>().FirstOrDefault());
@@ -154,7 +159,7 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[2]; // "Goals"
+        shell.Selected = Nav(shell, "Goals");
         Dispatcher.UIThread.RunJobs();
 
         Assert.NotNull(window.GetVisualDescendants().OfType<GoalsView>().FirstOrDefault());
@@ -164,13 +169,13 @@ public class BootTests
     public void SkillRules_form_renders_and_nests_aura_check_views()
     {
         MainWindowViewModel shell = NewShell(out _);
-        var rules = (SkillRulesViewModel)shell.Items[3].Content;
+        var rules = (SkillRulesViewModel)Nav(shell, "Skill Rules").Content;
         rules.AddAuraCheckCommand.Execute(null); // one aura-check row
 
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[3]; // "Skill Rules"
+        shell.Selected = Nav(shell, "Skill Rules");
         Dispatcher.UIThread.RunJobs();
 
         // The form resolved...
@@ -186,7 +191,7 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[4]; // "Updates"
+        shell.Selected = Nav(shell, "Updates");
         Dispatcher.UIThread.RunJobs();
 
         Assert.NotNull(window.GetVisualDescendants().OfType<AppUpdaterView>().FirstOrDefault());
@@ -200,7 +205,7 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[5]; // "Launcher"
+        shell.Selected = Nav(shell, "Launcher");
         Dispatcher.UIThread.RunJobs();
 
         Assert.NotNull(window.GetVisualDescendants().OfType<LauncherView>().FirstOrDefault());
@@ -213,7 +218,7 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[6]; // "GitHub Auth"
+        shell.Selected = Nav(shell, "GitHub Auth");
         Dispatcher.UIThread.RunJobs();
 
         Assert.NotNull(window.GetVisualDescendants().OfType<GitHubAuthView>().FirstOrDefault());
@@ -226,11 +231,13 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[7]; // "Skill Editor"
+        // The standalone skill editor is embedded in "Advanced Skills" (its
+        // EditViewModel), so the editor view resolves from that composite.
+        shell.Selected = Nav(shell, "Advanced Skills");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<AdvancedSkillEditorView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[8]; // "Notify Drop"
+        shell.Selected = Nav(shell, "Notify Drop");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<NotifyDropView>().FirstOrDefault());
     }
@@ -244,122 +251,121 @@ public class BootTests
         MainWindow window = new() { DataContext = shell };
         window.Show();
 
-        shell.Selected = shell.Items[9]; // "Stats"
+        shell.Selected = Nav(shell, "Stats");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ScriptStatsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[10]; // "Current Drops"
+        shell.Selected = Nav(shell, "Current Drops");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<CurrentDropsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[11]; // "Boosts"
+        shell.Selected = Nav(shell, "Boosts");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<BoostsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[12]; // "Console"
+        shell.Selected = Nav(shell, "Console");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ConsoleView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[13]; // "Auto Attack"
+        shell.Selected = Nav(shell, "Auto Attack");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<AutoView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[14]; // "Jump"
+        shell.Selected = Nav(shell, "Jump");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<JumpView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[15]; // "Registered Quests"
+        shell.Selected = Nav(shell, "Registered Quests");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<RegisteredQuestsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[16]; // "Fast Travel"
+        shell.Selected = Nav(shell, "Fast Travel");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<FastTravelView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[17]; // "Pickup Drops"
+        shell.Selected = Nav(shell, "Pickup Drops");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ToPickupDropsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[18]; // "Loadouts"
+        shell.Selected = Nav(shell, "Loadouts");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<LoadoutsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[19]; // "Scheduler"
+        shell.Selected = Nav(shell, "Scheduler");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ScriptSchedulerView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[20]; // "Packet Spammer"
+        shell.Selected = Nav(shell, "Packet Spammer");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<PacketSpammerView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[21]; // "Scripts"
+        shell.Selected = Nav(shell, "Scripts");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ScriptRepoView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[22]; // "Runtime" (composite: nests other views)
+        shell.Selected = Nav(shell, "Runtime");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<RuntimeHelpersView>().FirstOrDefault());
         // The composite renders a nested ported view via the ViewLocator.
         Assert.NotNull(window.GetVisualDescendants().OfType<ToPickupDropsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[23]; // "Advanced Skills" (composite)
+        shell.Selected = Nav(shell, "Advanced Skills");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<AdvancedSkillsView>().FirstOrDefault());
         Assert.NotNull(window.GetVisualDescendants().OfType<SavedAdvancedSkillsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[24]; // "Theme"
-        Dispatcher.UIThread.RunJobs();
-        Assert.NotNull(window.GetVisualDescendants().OfType<ThemeSettingsView>().FirstOrDefault());
-
-        shell.Selected = shell.Items[25]; // "Themes" (composite)
+        // "Themes" hosts the theme settings sub-panel (there is no separate
+        // "Theme" tab — it was a redundant duplicate).
+        shell.Selected = Nav(shell, "Themes");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ApplicationThemesView>().FirstOrDefault());
+        Assert.NotNull(window.GetVisualDescendants().OfType<ThemeSettingsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[26]; // "Hotkeys"
+        shell.Selected = Nav(shell, "Hotkeys");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<HotKeysView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[27]; // "Packet Logger"
+        shell.Selected = Nav(shell, "Packet Logger");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<PacketLoggerView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[28]; // "Packet Interceptor"
+        shell.Selected = Nav(shell, "Packet Interceptor");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<PacketInterceptorView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[29]; // "Logs"
+        shell.Selected = Nav(shell, "Logs");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<LogsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[30]; // "Quest Loader"
+        shell.Selected = Nav(shell, "Quest Loader");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<LoaderView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[31]; // "Grabber"
+        shell.Selected = Nav(shell, "Grabber");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<GrabberView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[32]; // "Plugins"
+        shell.Selected = Nav(shell, "Plugins");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<PluginsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[33]; // "Game Options"
+        shell.Selected = Nav(shell, "Game Options");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<GameOptionsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[34]; // "App Options"
+        shell.Selected = Nav(shell, "App Options");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ApplicationOptionsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[35]; // "CoreBots"
+        shell.Selected = Nav(shell, "CoreBots");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<CoreBotsView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[36]; // "Script Loader"
+        shell.Selected = Nav(shell, "Script Loader");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<ScriptLoaderView>().FirstOrDefault());
 
-        shell.Selected = shell.Items[37]; // "Junk Items"
+        shell.Selected = Nav(shell, "Junk Items");
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(window.GetVisualDescendants().OfType<JunkItemsView>().FirstOrDefault());
     }

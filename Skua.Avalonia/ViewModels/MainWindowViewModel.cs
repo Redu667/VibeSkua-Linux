@@ -44,7 +44,6 @@ public partial class MainWindowViewModel : ObservableObject
         Skua.Core.ViewModels.Manager.AppUpdaterViewModel appUpdater,
         Skua.Core.ViewModels.Manager.LauncherViewModel launcher,
         GitHubAuthViewModel gitHubAuth,
-        AdvancedSkillEditorViewModel skillEditor,
         NotifyDropViewModel notifyDrop,
         ScriptStatsViewModel scriptStats,
         CurrentDropsViewModel currentDrops,
@@ -61,7 +60,6 @@ public partial class MainWindowViewModel : ObservableObject
         ScriptRepoViewModel scriptRepo,
         RuntimeHelpersViewModel runtimeHelpers,
         AdvancedSkillsViewModel advancedSkills,
-        ThemeSettingsViewModel themeSettings,
         ApplicationThemesViewModel applicationThemes,
         HotKeysViewModel hotKeys,
         PacketLoggerViewModel packetLogger,
@@ -75,7 +73,10 @@ public partial class MainWindowViewModel : ObservableObject
         CoreBotsViewModel coreBots,
         ScriptLoaderViewModel scriptLoader,
         JunkItemsViewModel junkItems,
-        Skua.Core.ViewModels.Manager.ManagerMainViewModel managerMain)
+        Skua.Core.ViewModels.Manager.AccountManagerViewModel accountManager,
+        Skua.Core.ViewModels.Manager.ScriptUpdaterViewModel scriptUpdater,
+        Skua.Core.ViewModels.Manager.ManagerOptionsViewModel managerOptions,
+        Skua.Core.ViewModels.Manager.ClientUpdatesViewModel clientUpdates)
     {
         // ViewModels resolved through DI (Ioc.Default), mirroring Skua.App.WPF.
         // Order preserved (tests index into this list); NavScope tags which
@@ -86,10 +87,16 @@ public partial class MainWindowViewModel : ObservableObject
             new("Change Logs", changeLogs),
             new("Goals", goals, NavScope.Manager),
             new("Skill Rules", skillRules, NavScope.Client),
-            new("Updates", appUpdater, NavScope.Manager),
+            // Manager (army) surface — flat sidebar items, matching the rest of
+            // the shell (not a tabs-in-a-tab bundle). "Accounts" is where you
+            // add accounts + groups and start each one (auto-login army).
+            new("Accounts", accountManager, NavScope.Manager),
             new("Launcher", launcher, NavScope.Manager),
+            new("Updates", appUpdater, NavScope.Manager),
+            new("Script Updater", scriptUpdater, NavScope.Manager),
+            new("Client Files", clientUpdates, NavScope.Manager),
+            new("Manager Options", managerOptions, NavScope.Manager),
             new("GitHub Auth", gitHubAuth),
-            new("Skill Editor", skillEditor, NavScope.Client),
             new("Notify Drop", notifyDrop, NavScope.Client),
             new("Stats", scriptStats, NavScope.Client),
             new("Current Drops", currentDrops, NavScope.Client),
@@ -106,9 +113,14 @@ public partial class MainWindowViewModel : ObservableObject
             new("Scripts", scriptRepo, NavScope.Client),
             new("Runtime", runtimeHelpers, NavScope.Client),
             new("Advanced Skills", advancedSkills, NavScope.Client),
-            new("Theme", themeSettings),
+            // One themes entry, matching Windows (WPF exposes only "Application
+            // Themes"). ApplicationThemesViewModel already hosts the theme
+            // settings, color scheme, and background sub-panels in its own tabs,
+            // so a separate standalone "Theme" tab was redundant.
             new("Themes", applicationThemes),
-            new("Hotkeys", hotKeys, NavScope.Client),
+            // Both windows: the manager needs hotkeys too (the Army* hotkeys
+            // broadcast to all clients — a manager-level control).
+            new("Hotkeys", hotKeys),
             new("Packet Logger", packetLogger, NavScope.Client),
             new("Packet Interceptor", packetInterceptor, NavScope.Client),
             new("Logs", logs),
@@ -123,11 +135,6 @@ public partial class MainWindowViewModel : ObservableObject
             // The in-window AQW game surface (Ruffle). Self-contained — its View
             // owns the native renderer, so no DI dependency is threaded here.
             new("Game", new GameViewModel(), NavScope.Client),
-            // The Skua.Manager surface (Windows ships it as a separate exe):
-            // Accounts (add/save accounts, groups, server select, per-account
-            // auto-login + start = the army setup), Launcher, Updater, Scripts,
-            // Options, Themes. Appended last so position-indexed tests hold.
-            new("Accounts / Army", managerMain, NavScope.Manager),
         };
         Selected = Items[0];
     }
