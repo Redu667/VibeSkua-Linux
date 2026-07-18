@@ -546,10 +546,20 @@ impl Drop for RenderHost {
 fn install_ruffle_log() {
     static ONCE: std::sync::Once = std::sync::Once::new();
     ONCE.call_once(|| {
-        let Ok(home) = std::env::var("HOME") else { return };
-        let dir = std::path::Path::new(&home).join(".config").join("Skua");
-        let _ = std::fs::create_dir_all(&dir);
-        let path = dir.join("vibeskua-ruffle.log");
+        // Per-launch path published by the C# host (SessionLog.Init); falls
+        // back to the legacy single file when hosted without it.
+        let path = match std::env::var("SKUA_RUFFLE_LOG") {
+            Ok(p) if !p.is_empty() => std::path::PathBuf::from(p),
+            _ => {
+                let Ok(home) = std::env::var("HOME") else { return };
+                let dir = std::path::Path::new(&home).join(".config").join("Skua");
+                let _ = std::fs::create_dir_all(&dir);
+                dir.join("vibeskua-ruffle.log")
+            }
+        };
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
         let Ok(file) = std::fs::OpenOptions::new().create(true).append(true).open(&path) else {
             return;
         };

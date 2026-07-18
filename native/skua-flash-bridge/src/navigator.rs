@@ -47,18 +47,26 @@ pub(crate) fn game_log(msg: &str) {
         .unwrap_or(0);
     let pid = std::process::id();
     eprintln!("[skua-game {pid}] {msg}");
-    if let Ok(home) = std::env::var("HOME") {
-        let dir = std::path::Path::new(&home).join(".config").join("Skua");
-        let _ = std::fs::create_dir_all(&dir);
-        if let Ok(mut f) = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(dir.join("vibeskua-game.log"))
-        {
+    // Per-launch path published by the C# host (SessionLog.Init); falls back to
+    // the legacy single file when hosted without it.
+    if let Some(path) = game_log_path() {
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
             use std::io::Write as _;
             let _ = writeln!(f, "[{ts} {pid}] {msg}");
         }
     }
+}
+
+fn game_log_path() -> Option<std::path::PathBuf> {
+    if let Ok(p) = std::env::var("SKUA_GAME_LOG") {
+        if !p.is_empty() {
+            return Some(std::path::PathBuf::from(p));
+        }
+    }
+    let home = std::env::var("HOME").ok()?;
+    let dir = std::path::Path::new(&home).join(".config").join("Skua");
+    let _ = std::fs::create_dir_all(&dir);
+    Some(dir.join("vibeskua-game.log"))
 }
 
 /// Result of a completed blocking HTTP request.

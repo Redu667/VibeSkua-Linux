@@ -148,13 +148,10 @@ public sealed class GameSession : IDisposable
     {
         try
         {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
-            Directory.CreateDirectory(dir);
+            string path = SessionLog.ResolveClientLog();
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            File.AppendAllText(
-                Path.Combine(dir, "vibeskua-client.log"),
-                $"[{ts} {Environment.ProcessId}] {message}\n");
+            File.AppendAllText(path, $"[{ts} {Environment.ProcessId}] {message}\n");
         }
         catch { /* logging must never throw */ }
     }
