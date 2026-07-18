@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-	<!-- Set hardcoded version for all projects -->
+	<!-- Dev/default version. Linux release AppImages OVERRIDE this at publish
+	     time with the actual release version (packaging/build-appimage.sh passes
+	     -p:Version=...), so shipped builds report their real version to the
+	     updater/About. This default just tracks the current Linux release line
+	     (the old 1.8.3 was the Windows VibeSkua line and made the Linux update
+	     UI show a wrong, always-newer-than-releases version). -->
 	<PropertyGroup>
-		<AssemblyVersion>1.8.3</AssemblyVersion>
-		<FileVersion>1.8.3</FileVersion>
-		<Version>1.8.3</Version>
+		<AssemblyVersion>1.1.5</AssemblyVersion>
+		<FileVersion>1.1.5</FileVersion>
+		<Version>1.1.5</Version>
 	</PropertyGroup>
 </Project>

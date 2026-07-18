@@ -75,8 +75,7 @@ public partial class MainWindowViewModel : ObservableObject
         JunkItemsViewModel junkItems,
         Skua.Core.ViewModels.Manager.AccountManagerViewModel accountManager,
         Skua.Core.ViewModels.Manager.ScriptUpdaterViewModel scriptUpdater,
-        Skua.Core.ViewModels.Manager.ManagerOptionsViewModel managerOptions,
-        Skua.Core.ViewModels.Manager.ClientUpdatesViewModel clientUpdates)
+        Skua.Core.ViewModels.Manager.ManagerOptionsViewModel managerOptions)
     {
         // ViewModels resolved through DI (Ioc.Default), mirroring Skua.App.WPF.
         // Order preserved (tests index into this list); NavScope tags which
@@ -92,9 +91,11 @@ public partial class MainWindowViewModel : ObservableObject
             // add accounts + groups and start each one (auto-login army).
             new("Accounts", accountManager, NavScope.Manager),
             new("Launcher", launcher, NavScope.Manager),
+            // The Linux app self-updates via Velopack (AppImage) — this is the
+            // one real updater. (The Windows-only "Client Files" updater that
+            // pulled Skua.exe from auqw/Skua is intentionally not surfaced.)
             new("Updates", appUpdater, NavScope.Manager),
             new("Script Updater", scriptUpdater, NavScope.Manager),
-            new("Client Files", clientUpdates, NavScope.Manager),
             new("Manager Options", managerOptions, NavScope.Manager),
             new("GitHub Auth", gitHubAuth),
             new("Notify Drop", notifyDrop, NavScope.Client),
