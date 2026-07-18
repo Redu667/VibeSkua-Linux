@@ -69,8 +69,7 @@ public class BootTests
             Ioc.Default.GetRequiredService<JunkItemsViewModel>(),
             Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.AccountManagerViewModel>(),
             Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ScriptUpdaterViewModel>(),
-            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ManagerOptionsViewModel>(),
-            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ClientUpdatesViewModel>());
+            Ioc.Default.GetRequiredService<Skua.Core.ViewModels.Manager.ManagerOptionsViewModel>());
     }
 
     /// <summary>Select a nav item by title (robust to reordering).</summary>

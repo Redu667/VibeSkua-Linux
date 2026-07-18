@@ -28,9 +28,14 @@ ICON="$ROOT/packaging/icon.png"
 echo ">> VibeSkua Linux $VERSION  (ruffle=$RUFFLE)"
 
 rm -rf "$PUBLISH_DIR"
+# Bake the release version into the assembly so the app reports the version it
+# was actually shipped as (About/updater), matching the Velopack packVersion
+# below — otherwise it inherited the Directory.Build.props default and the
+# update UI showed a stale, wrong version.
 dotnet publish "$ROOT/Skua.Avalonia/Skua.Avalonia.csproj" \
     -c Release -r linux-x64 --self-contained true \
     -p:SkuaRuffle=$RUFFLE \
+    -p:Version="$VERSION" -p:AssemblyVersion="$VERSION" -p:FileVersion="$VERSION" \
     -o "$PUBLISH_DIR"
 
 # Ensure the vpk tool is reachable even when installed into the dotnet tools dir.
