@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.1.2
+
+Fixes for features that were built but not reachable from the UI.
+
+- **Configurable scripts work again.** Scripts that show an options window
+  (e.g. FarmerJoeDoAll) errored on start with "View not found for
+  OptionContainerViewModel" — the options dialog had no view. It's now a real
+  dialog with the right editor per option (checkbox / dropdown / text).
+- **Accounts / army setup is reachable.** Add accounts and groups, pick a
+  server, and start each one (auto-login) from the new **Accounts** tab in the
+  manager window — plus Launcher, Updates, Script Updater, Client Files, and
+  Manager Options as their own tabs.
+- **Fast Travel add/edit/remove works.** The editor row is shown (fill it or
+  "Get current location", then Add), and each saved entry has Edit and Remove
+  buttons.
+- **No more duplicate tabs.** Removed the redundant second "Theme" tab and the
+  standalone "Skill Editor" (both were already inside other tabs).
+- **Hotkeys tab shows in the manager window too**, so army hotkeys can be
+  assigned there.
+
 ## v1.1.1
 
 Visual polish using the real Skua artwork:
