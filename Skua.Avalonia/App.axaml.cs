@@ -36,21 +36,31 @@ public partial class App : Application
             using (var iconStream = global::Avalonia.Platform.AssetLoader.Open(iconUri))
                 window.Icon = new global::Avalonia.Controls.WindowIcon(iconStream);
 
-            void ToggleWindow()
+            void RestoreWindow()
             {
-                if (window.IsVisible)
-                {
-                    window.Hide();
-                }
-                else
-                {
-                    window.Show();
-                    window.Activate();
-                }
+                window.Show();
+                // A minimized window is still IsVisible, so it must be un-minimized
+                // explicitly — the previous toggle treated minimized as "visible"
+                // and hid it, which is what made the tray feel finicky.
+                if (window.WindowState == global::Avalonia.Controls.WindowState.Minimized)
+                    window.WindowState = global::Avalonia.Controls.WindowState.Normal;
+                window.Activate();
             }
 
-            var showHide = new global::Avalonia.Controls.NativeMenuItem("Show / Hide");
-            showHide.Click += (_, _) => ToggleWindow();
+            void ToggleWindow()
+            {
+                bool shown = window.IsVisible
+                    && window.WindowState != global::Avalonia.Controls.WindowState.Minimized;
+                if (shown)
+                    window.Hide();
+                else
+                    RestoreWindow();
+            }
+
+            var showItem = new global::Avalonia.Controls.NativeMenuItem("Show");
+            showItem.Click += (_, _) => RestoreWindow();
+            var hideItem = new global::Avalonia.Controls.NativeMenuItem("Hide");
+            hideItem.Click += (_, _) => window.Hide();
             var exit = new global::Avalonia.Controls.NativeMenuItem("Exit");
             exit.Click += (_, _) => desktop.Shutdown();
 
@@ -59,8 +69,11 @@ public partial class App : Application
             {
                 Icon = new global::Avalonia.Controls.WindowIcon(trayIconStream),
                 ToolTipText = window.Title ?? "VibeSkua",
-                Menu = new global::Avalonia.Controls.NativeMenu { Items = { showHide, exit } },
+                Menu = new global::Avalonia.Controls.NativeMenu { Items = { showItem, hideItem, exit } },
             };
+            // Left-click toggle is best-effort — some desktops (e.g. GNOME
+            // without an extension) don't deliver it, so the explicit Show/Hide
+            // menu items are the reliable path.
             tray.Clicked += (_, _) => ToggleWindow();
 
             global::Avalonia.Controls.TrayIcon.SetIcons(Current!, new global::Avalonia.Controls.TrayIcons { tray });
@@ -403,7 +416,10 @@ public partial class App : Application
         // the DI-intended parameterless constructor explicitly. (The copy ctor is
         // only used for manual cloning, e.g. the skill-rule editor dialog.)
         services.AddTransient<SkillRulesViewModel>(_ => new SkillRulesViewModel());
-        services.AddTransient<Skua.Core.ViewModels.Manager.AppUpdaterViewModel>();
+        services.AddTransient<Skua.Core.ViewModels.Manager.AppUpdaterViewModel>(sp =>
+            new Skua.Core.ViewModels.Manager.AppUpdaterViewModel(
+                sp.GetRequiredService<Skua.Core.Interfaces.IDispatcherService>(),
+                sp.GetRequiredService<Skua.Core.Interfaces.ISettingsService>()));
         services.AddTransient<Skua.Core.ViewModels.Manager.LauncherViewModel>();
         services.AddTransient<GitHubAuthViewModel>();
         services.AddTransient<AdvancedSkillEditorViewModel>();

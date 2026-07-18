@@ -12,11 +12,37 @@ namespace Skua.Core.ViewModels.Manager;
 
 public partial class AppUpdaterViewModel : ObservableObject
 {
-    private readonly IDispatcherService _dispatcherService;
+    // The Linux AppImage releases live in this fork's repo, NOT the Windows
+    // upstream (NinjaXz/VibeSkua) — pointing at upstream meant the updater
+    // never found a Linux release. The releases are published on the "linux"
+    // Velopack channel (releases.linux.json), so pin that explicitly.
+    private const string ReleaseRepoUrl = "https://github.com/Redu667/VibeSkua-Linux";
+    private const string ReleaseChannel = "linux";
 
-    public AppUpdaterViewModel(IDispatcherService dispatcherService)
+    private readonly IDispatcherService _dispatcherService;
+    private readonly ISettingsService? _settingsService;
+
+    public AppUpdaterViewModel(IDispatcherService dispatcherService, ISettingsService? settingsService = null)
     {
         _dispatcherService = dispatcherService;
+        _settingsService = settingsService;
+    }
+
+    /// <summary>The release repo is private, so read releases with the user's
+    /// stored GitHub token (GitHub Auth tab) when present; null = anonymous
+    /// (works only if the repo is public).</summary>
+    private GithubSource CreateSource()
+    {
+        string? token = _settingsService?.Get<string>("UserGitHubToken");
+        if (string.IsNullOrWhiteSpace(token))
+            token = null;
+        return new GithubSource(ReleaseRepoUrl, token, false);
+    }
+
+    private UpdateManager CreateManager()
+    {
+        var locator = VelopackLocator.CreateDefaultForPlatform(null, null);
+        return new UpdateManager(CreateSource(), new UpdateOptions { ExplicitChannel = ReleaseChannel }, locator);
     }
 
     [ObservableProperty]
@@ -44,8 +70,7 @@ public partial class AppUpdaterViewModel : ObservableObject
         });
         try
         {
-            var locator = VelopackLocator.CreateDefaultForPlatform(null, null);
-            _updateManager = new UpdateManager(new GithubSource("https://github.com/NinjaXz/VibeSkua", null, false), null, locator);
+            _updateManager = CreateManager();
             _updateInfo = await _updateManager.CheckForUpdatesAsync();
 
             _dispatcherService.Invoke(() =>
@@ -93,11 +118,7 @@ public partial class AppUpdaterViewModel : ObservableObject
         });
         try
         {
-            if (_updateManager == null)
-            {
-                var locator = VelopackLocator.CreateDefaultForPlatform(null, null);
-                _updateManager = new UpdateManager(new GithubSource("https://github.com/NinjaXz/VibeSkua", null, false), null, locator);
-            }
+            _updateManager ??= CreateManager();
 
             Action<int> progressObj = (progress) => 
             {
