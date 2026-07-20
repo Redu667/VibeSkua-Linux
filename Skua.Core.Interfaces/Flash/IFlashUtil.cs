@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Skua.Core.Models.Converters;
 using System.Xml.Linq;
 
 namespace Skua.Core.Interfaces;
@@ -109,7 +110,7 @@ public interface IFlashUtil : IDisposable
     {
         try
         {
-            return JsonConvert.DeserializeObject<T>(GetGameObject(path)!) ?? def;
+            return JsonConvert.DeserializeObject<T>(GetGameObject(path)!, GameObjectJson.Settings) ?? def;
         }
         catch
         {
@@ -138,7 +139,7 @@ public interface IFlashUtil : IDisposable
     {
         try
         {
-            return JsonConvert.DeserializeObject<T>(GetGameObjectStatic(path)!);
+            return JsonConvert.DeserializeObject<T>(GetGameObjectStatic(path)!, GameObjectJson.Settings);
         }
         catch
         {
@@ -185,7 +186,7 @@ public interface IFlashUtil : IDisposable
     {
         try
         {
-            return JsonConvert.DeserializeObject<T>(CallGameFunction(path, args)!);
+            return JsonConvert.DeserializeObject<T>(CallGameFunction(path, args)!, GameObjectJson.Settings);
         }
         catch
         {
@@ -216,7 +217,7 @@ public interface IFlashUtil : IDisposable
     {
         try
         {
-            return JsonConvert.DeserializeObject<T>(GetArrayObject(path, index)!);
+            return JsonConvert.DeserializeObject<T>(GetArrayObject(path, index)!, GameObjectJson.Settings);
         }
         catch
         {
@@ -235,7 +236,7 @@ public interface IFlashUtil : IDisposable
     {
         try
         {
-            return JsonConvert.DeserializeObject<List<T>>(Call("selectArrayObjects", path, selector)!)!;
+            return JsonConvert.DeserializeObject<List<T>>(Call("selectArrayObjects", path, selector)!, GameObjectJson.Settings)!;
         }
         catch
         {
