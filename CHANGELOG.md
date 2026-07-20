@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.8
+
+- **Scripts stop failing to start with a "Skua.Core.Models 1.8.3.0" error.**
+  Some scripts (e.g. anything using CoreAdvanced/CoreBots) errored on launch
+  with *"Could not load file or assembly 'Skua.Core.Models, Version=1.8.3.0'"*.
+  The compiled-script cache folder was shared across app versions, so a script
+  compiled by a very old (1.8.3) build stayed cached and kept being reused —
+  and it referenced an assembly version that no longer ships. The cache is now
+  tied to the app version, so each update starts clean and old cached builds
+  are cleared automatically. (If you hit this before updating, you can also
+  clear it manually: delete `~/.config/Skua/Scripts/Cached-Scripts-l4`.)
+
 ## v1.1.7
 
 - **Scripts stop re-buying/re-farming things you already own.** The bot was
