@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.1.7
+
+- **Scripts stop re-buying/re-farming things you already own.** The bot was
+  reading your inventory as *empty* even with a full bag, so ownership and
+  completion checks all failed — FarmerJoeDoAll would start over and re-buy
+  items like Oracle Hood. Cause: Ruffle sends item IDs as `685089465.0` (with a
+  trailing `.0`) where the old Flash sent `685089465`, and the number parser
+  choked on the decimal and silently threw the **entire** inventory away. Game
+  reads now accept Ruffle's number format, so inventory, quests, shop, and stat
+  checks work. (After updating, `Bot.Inventory.Contains("...")` returns true for
+  items you own.) This was a systemic read bug, not just an inventory one — a
+  lot of "script doesn't detect it's done" behavior traces back to it.
+
 ## v1.1.6
 
 - **Game UI text renders instead of showing blank labels.** Ruffle has no
