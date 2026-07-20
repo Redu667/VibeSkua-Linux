@@ -25,8 +25,24 @@ public class Compiler : CSharpScriptExecution
     /// and ScriptManager — making the cache key reflect the actually-compiled
     /// bytes. A neutralized DLL and a stale non-neutralized one therefore land at
     /// different cache keys and can never be confused.
+    /// <para>
+    /// The running assembly version is appended so each app version gets its own
+    /// cache folder. A compiled include DLL embeds a hard reference to the exact
+    /// <c>Skua.Core.Models</c> version it built against; when the AppImage version
+    /// changes (e.g. the old 1.8.3 line → the 1.1.x Linux line) a cache hit on a
+    /// DLL compiled against the vanished version fails to load with
+    /// "Could not load file or assembly 'Skua.Core.Models, Version=…'". Keying the
+    /// folder on the version means such DLLs are never hit, and
+    /// <see cref="PurgeStaleCacheDirectories"/> deletes the previous version's folder
+    /// on startup.
+    /// </para>
     /// </summary>
-    public const string CacheVersion = "l4";
+    public static readonly string CacheVersion = $"l4-{AssemblyVersionSalt()}";
+
+    /// <summary>Version of the assembly the compiled includes reference, used to
+    /// scope the cache folder. Falls back to <c>"0"</c> if unavailable.</summary>
+    private static string AssemblyVersionSalt()
+        => typeof(Compiler).Assembly.GetName().Version?.ToString() ?? "0";
     private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, $"Cached-Scripts-{CacheVersion}");
 
     static Compiler()
