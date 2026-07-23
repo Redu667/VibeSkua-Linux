@@ -21,6 +21,7 @@ public partial class App : Application
     private static bool _servicesConfigured;
     private static ArmyBus? _armyBus;
     private static TrayNotifier? _trayNotifier;
+    private static MemoryTrimmer? _memoryTrimmer;
 
     /// <summary>
     /// Tray icon with Show/Hide + Exit (the WPF app's TaskbarIcon equivalent).
@@ -184,6 +185,16 @@ public partial class App : Application
             var clientFiles = services.GetRequiredService<IClientFilesService>();
             clientFiles.CreateDirectories();
             clientFiles.CreateFiles();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        // Periodically hand freed memory back to the OS. The live game view's
+        // ~30 fps native frame readback churns memory that glibc's allocator
+        // holds in its arenas; without this RSS climbs and never falls over a
+        // long session. Linux twin of WPF's GameContainerUserControl trim timer.
+        Run("memory trimmer", () =>
+        {
+            _memoryTrimmer ??= new MemoryTrimmer(TimeSpan.FromSeconds(60));
             return System.Threading.Tasks.Task.CompletedTask;
         });
 
