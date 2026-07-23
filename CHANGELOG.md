@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.1.9
+
+- **Stopping a script no longer crashes the client.** Stopping a script ran
+  cleanup on a background thread, and if any step of that teardown threw, the
+  whole client window closed instead of showing an error. Every teardown step
+  is now isolated, so a stop can log a problem at worst — never take down the
+  window.
+- **Script options stick between sessions.** Options you set in a script's
+  window (including "Skip this window next time") were being silently discarded
+  because the folder they save to was never created, so the dialog kept popping
+  up every run. The data folders are now created at startup and the save path
+  creates them defensively — your choices persist now. (Applies to all script
+  options, not just the skip checkbox.)
+- **Memory no longer climbs endlessly during long sessions.** With the live
+  game view running, freed memory wasn't being returned to the OS, so usage
+  crept up over time. The client now hands freed memory back on a timer, so it
+  levels off instead of spiraling.
+- Quieted some harmless "binding" noise the script-options window wrote to the
+  log.
+
 ## v1.1.8
 
 - **Scripts stop failing to start with a "Skua.Core.Models 1.8.3.0" error.**
