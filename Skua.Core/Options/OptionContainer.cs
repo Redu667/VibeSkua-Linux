@@ -130,6 +130,12 @@ public class OptionContainer : ObservableObject, IOptionContainer
         linesToSave.AddRange(Options.Where(o => !o.Transient).Select(o => $"Options:{o.Name}={OptionValues[o]}"));
         foreach (KeyValuePair<string, List<IOption>> item in MultipleOptions)
             linesToSave.AddRange(item.Value.Where(o => !o.Transient).Select(o => $"{item.Key}:{o.Name}={OptionValues[o]}"));
+        // Ensure the options directory exists — otherwise WriteAllLines throws a
+        // DirectoryNotFoundException and the option (e.g. "Skip this window next
+        // time") is silently lost between sessions.
+        string? dir = Path.GetDirectoryName(OptionsFile);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
         File.WriteAllLines(OptionsFile, linesToSave);
     }
 }

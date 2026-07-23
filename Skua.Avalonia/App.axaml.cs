@@ -173,6 +173,20 @@ public partial class App : Application
     {
         var services = Ioc.Default;
 
+        // Ensure the client data directories/files exist (~/.config/Skua/options,
+        // scripts, plugins, themes, …). WPF does this at startup (App.OnStartup);
+        // the Avalonia port registered IClientFilesService but never invoked it,
+        // so ~/.config/Skua/options was missing and saving a script's options
+        // (OptionContainer.Save → File.WriteAllLines) threw and was silently lost
+        // — e.g. "Skip this window next time" never persisted between sessions.
+        Run("client files", () =>
+        {
+            var clientFiles = services.GetRequiredService<IClientFilesService>();
+            clientFiles.CreateDirectories();
+            clientFiles.CreateFiles();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
         // CLI parity with WPF's SkuaStartupHandler: --gh-token seeds the GitHub
         // auth token, --use-theme picks the base theme by name.
         Run("cli args", () =>
