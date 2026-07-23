@@ -21,6 +21,7 @@ public partial class App : Application
     private static bool _servicesConfigured;
     private static ArmyBus? _armyBus;
     private static TrayNotifier? _trayNotifier;
+    private static MemoryTrimmer? _memoryTrimmer;
 
     /// <summary>
     /// Tray icon with Show/Hide + Exit (the WPF app's TaskbarIcon equivalent).
@@ -172,6 +173,30 @@ public partial class App : Application
     private static void RunStartupTasks(bool clientMode, string[] args)
     {
         var services = Ioc.Default;
+
+        // Ensure the client data directories/files exist (~/.config/Skua/options,
+        // scripts, plugins, themes, …). WPF does this at startup (App.OnStartup);
+        // the Avalonia port registered IClientFilesService but never invoked it,
+        // so ~/.config/Skua/options was missing and saving a script's options
+        // (OptionContainer.Save → File.WriteAllLines) threw and was silently lost
+        // — e.g. "Skip this window next time" never persisted between sessions.
+        Run("client files", () =>
+        {
+            var clientFiles = services.GetRequiredService<IClientFilesService>();
+            clientFiles.CreateDirectories();
+            clientFiles.CreateFiles();
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
+
+        // Periodically hand freed memory back to the OS. The live game view's
+        // ~30 fps native frame readback churns memory that glibc's allocator
+        // holds in its arenas; without this RSS climbs and never falls over a
+        // long session. Linux twin of WPF's GameContainerUserControl trim timer.
+        Run("memory trimmer", () =>
+        {
+            _memoryTrimmer ??= new MemoryTrimmer(TimeSpan.FromSeconds(60));
+            return System.Threading.Tasks.Task.CompletedTask;
+        });
 
         // CLI parity with WPF's SkuaStartupHandler: --gh-token seeds the GitHub
         // auth token, --use-theme picks the base theme by name.

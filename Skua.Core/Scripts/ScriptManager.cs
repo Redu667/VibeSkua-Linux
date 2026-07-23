@@ -212,14 +212,20 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     }
 
                     script = null;
-                    Skills.Stop();
-                    Drops.Stop();
-
-                    AuraMonitor.StopMonitoring();
-                    UnloadPreviousScript();
-                    ScriptCts?.Dispose();
+                    // This runs on a manually-created Thread, so any exception that
+                    // escapes here is unhandled and terminates the whole client
+                    // process (the window just vanishes). A misbehaving
+                    // ScriptStopped handler or an unload hiccup must not do that —
+                    // isolate every teardown step and log, and always fall through
+                    // to ScriptRunning = false so the UI can recover / restart.
+                    SafeTeardown("Skills.Stop", Skills.Stop);
+                    SafeTeardown("Drops.Stop", Drops.Stop);
+                    SafeTeardown("AuraMonitor.StopMonitoring", AuraMonitor.StopMonitoring);
+                    SafeTeardown("UnloadPreviousScript", UnloadPreviousScript);
+                    SafeTeardown("Dispose ScriptCts", () => ScriptCts?.Dispose());
                     ScriptCts = null;
-                    StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus);
+                    SafeTeardown("ScriptStopped message", () =>
+                        StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus));
                     ScriptRunning = false;
                 }
             })
@@ -349,6 +355,25 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
 
         OnPropertyChanged(nameof(ScriptRunning));
+    }
+
+    /// <summary>
+    /// Run one script-teardown step, swallowing and logging any exception. The
+    /// teardown runs inside the script <see cref="Thread"/>'s finally block; an
+    /// exception escaping there is unhandled on a manual thread and crashes the
+    /// whole process, so every step must be isolated.
+    /// </summary>
+    private void SafeTeardown(string step, Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"Script teardown step '{step}' failed: {ex}");
+            _logger?.ScriptLog($"Script teardown step '{step}' failed: {ex.Message}");
+        }
     }
 
     [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]

@@ -21,9 +21,14 @@
         <Border DockPanel.Dock="Bottom" Margin="12,0,12,0" Padding="8"
                 BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                 IsVisible="{Binding SelectedOption, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <StackPanel Spacing="2">
-                <TextBlock FontWeight="Bold" Text="{Binding SelectedOption.Option.DisplayName}" />
-                <TextBlock TextWrapping="Wrap" Text="{Binding SelectedOption.Option.Description}" />
+            <!-- Scope the inner bindings to SelectedOption so that when nothing is
+                 selected (null) they resolve against a null DataContext silently,
+                 instead of logging "Value is null" binding errors for the
+                 SelectedOption.Option.* path. -->
+            <StackPanel Spacing="2" DataContext="{Binding SelectedOption}"
+                        x:DataType="vm:OptionContainerItemViewModel">
+                <TextBlock FontWeight="Bold" Text="{Binding Option.DisplayName}" />
+                <TextBlock TextWrapping="Wrap" Text="{Binding Option.Description}" />
             </StackPanel>
         </Border>
 

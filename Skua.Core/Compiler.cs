@@ -109,6 +109,11 @@ public class Compiler : CSharpScriptExecution
     public static void ClearSessionRegistries()
     {
         _loadedAssemblies.Clear();
+        // Also drop the compiled-hash memo. It only speeds up IsCompiled (which
+        // falls back to the disk cache), so clearing it is correctness-neutral and
+        // stops it accumulating one int→path entry per distinct include for the
+        // whole process lifetime across many script runs.
+        _compiledRegistry.Clear();
     }
 
     /// <summary>
