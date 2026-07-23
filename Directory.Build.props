@@ -7,8 +7,8 @@
 	     (the old 1.8.3 was the Windows VibeSkua line and made the Linux update
 	     UI show a wrong, always-newer-than-releases version). -->
 	<PropertyGroup>
-		<AssemblyVersion>1.1.8</AssemblyVersion>
-		<FileVersion>1.1.8</FileVersion>
-		<Version>1.1.8</Version>
+		<AssemblyVersion>1.1.9</AssemblyVersion>
+		<FileVersion>1.1.9</FileVersion>
+		<Version>1.1.9</Version>
 	</PropertyGroup>
 </Project>
